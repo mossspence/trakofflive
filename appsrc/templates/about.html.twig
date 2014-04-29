@@ -1,0 +1,88 @@
+{% extends "base.html.twig" %}
+{% block title %}About{% endblock %}
+{% block content %}
+
+{% include 'navig.html.twig' %}
+
+        <div class="jumbotron" id="aboutImg" style="color: #fff;">
+            <div class="container">
+                <h1 style="color:#ccc;">About</h1>
+                <p>Trak Off Live was born to create playlists away from my vast home library. Now I can tinker
+                    with my songs wherever I am.
+                </p>
+                <p>No more empty dancefloors.</p>
+            </div>
+        </div>
+
+        <!-- hr -->
+
+        <div>
+            <div class="container">
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h2>Responsible <span class="text-muted">Crate Digging</span></h2>
+                        <p class="lead">I was tired of buying albums and songs again and again. 
+                            iTunes&TRADE; and Google Music&TRADE; aren't options so I needed some magical solution to view my library away from my computer.</p>
+                        <p class="lead">Now I can relax at the caf&eacute;, use this app in the <em>cloud</em> and put my mind at ease.</p>
+                        <p class="lead">
+                            <em class="text-muted small">"One More Cup of Coffee" 1976 Bob Dylan</em>
+                        </p>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <img src="../images/coffee.jpg" alt="random image" class="img-responsive img-thumbnail" />
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    
+                    <div class="col-sm-6">
+                        <img src="../images/party_like_1999.jpg" alt="random image" class="img-responsive img-thumbnail" />
+                    </div>
+
+                    <div class="col-sm-6">
+                        <h2 class="text-muted">Harmonic <span>Mixing</span></h2>
+                        <p class="lead">The library is tagged at load with useful id3 tag info including (but not limited to) ...
+                        <ul class="lead">
+                            <li>bpm</li>
+                            <li>fBPM</li>
+                            <li>initial key</li>
+                            <li>content group description</li>
+                        </ul>    
+
+                        <p class="lead">I know you know what that means. Yeah. Harmonic mixing. Perfect playlist creation.</p>
+                        <p class="lead"><span class="text-muted small"><em>"Perfect (Exceeder)" 2007 Mason vs. Princess Superstar</em></span></p>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <h2 class="thinheading">Oneil Stuart <span class="text-muted">Studios</span></h2>
+                        <p class="lead">
+                            We are a highly regarded web computing firm in 
+                            Toronto, Ontario, Canada, 
+                            which has been delivering 
+                            solutions and providing exemplary IT consultation since 2006. 
+                            In addition to providing web solutions, we are also
+                            one of Toronto's premier music and live entertainment
+                            talents, dropping horns in various area codes, 
+                            smacking that bass all over the place, and 
+                            floating those mids all over this gig.</p>
+                        <p class="lead">
+                            <span class="text-muted small"><em>"We Got It Going On" 2007 Bon Jovi</em></span>
+                        </p>
+                    </div>
+                    <div class="col-md-5">
+                        <img src="../images/mixer-sample.jpg" class="img-responsive img-thumbnail" alt="Generic placeholder image">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% include 'homefooter.html.twig' %}
+
+{% endblock content %}

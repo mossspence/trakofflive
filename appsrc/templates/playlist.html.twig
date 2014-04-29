@@ -1,0 +1,64 @@
+{% extends "base.html.twig" %}
+{% block title %}Sort at Your Leisure{% endblock %}
+{% block localCSS %}
+        <style>
+            .contentInfoContainer
+            {
+                overflow-x: hidden;
+            }
+            /* these are special FOR SLIP.JS */
+            .slip-reordering {
+                box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+            }
+
+            .slip-swiping-container {
+                overflow-x: hidden;
+            }
+            #songList li {
+                user-select: none;
+                -moz-user-select: none;
+                -webkit-user-select: none;
+                cursor: default;
+            }
+        </style>  
+{% endblock localCSS %}
+{% block content %}
+
+{% include 'navig.html.twig' %}
+
+
+
+    <div class="page-header alert alert-warning" id="content">
+      <div class="container">
+        <h3><span class="glyphicon glyphicon-play-circle"></span> Playlist</h3>
+        <p>Drag and drop the songs to your liking. <em>At your own peril</em>, 
+            since you should keep your BPMs close, and your keys closer.</p>
+      </div>
+    </div>
+    <div id="mainContent">
+        <div class="container">
+            <div id="playListInfo">   
+            
+                <div class="alert alert-info alert-dismissable" data-bind="visible: updateMessage" style="display:none;">
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                  <span data-bind="text: updateMessage" ></span>
+               </div>
+            
+                <div class="whatever"> <!-- used to be class="well" -->                
+                    <div>
+                        <ul id="songList" class="list-group">   <!-- OL doesn't seem to be working either -->
+                        </ul>
+                    </div>
+                </div>
+
+            </div>      
+        </div> <!-- /container -->
+    </div>
+       
+    <div id="abovefooter">
+      <div class="container">
+          <div style="float: left;"><button id="clearbutton" type="button" class="btn btn-warning">Clear Songs</button></div>
+          <div style="float: right;"><a href="../export/" id="exportbutton" type="button" class="btn btn-primary">Save (Export)</a></div>
+      </div>
+    </div>
+{% endblock content %}

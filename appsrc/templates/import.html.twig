@@ -1,0 +1,86 @@
+{% extends "base.html.twig" %}
+{% block title %}Import Songs{% endblock %}
+{% block content %}
+
+{% include 'admin.navig.html.twig' %}
+
+
+    <div class="page-header alert alert-warning" id="content">
+      <div class="container">
+        <h3><span class="glyphicon glyphicon-cog"></span> Import</h3>
+        <p>Upload a valid JSON file of your songs. (MAX 1000 songs per load).
+            Check the link for valid JSON.
+        </p>
+      </div>
+    </div>            
+        
+    
+    <div id="mainContent">    
+        
+        <div class="container">
+            <div id="importInfo">   
+            
+                <div class="alert alert-dismissable" id="updateMessageDiv" style="display:none;"> 
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                  <span id="updateMessage"></span>
+               </div>
+                
+            <div class="importMain"> <!-- used to be class="well" -->                
+ 
+                <p>Select JSON songs file to upload (Max total size 20MB)</p>
+                <div id="fileuploader">Upload</div>
+            </div>
+            </div>      
+        </div> <!-- /container -->
+
+    </div>
+
+
+{% endblock content %}
+{% block jscript %}
+        <link href="../bower_components/jQuery-File-Upload/uploadfile.css" rel="stylesheet">
+        <script src="../bower_components/jQuery-File-Upload/jquery.uploadfile.min.js"></script>
+    <script>
+    $(document).ready(function()
+    {
+            $("#fileuploader").uploadFile({
+                url:"../api/upload/songs/",
+                fileName:"myfile",
+                showProgress: true,
+                onSuccess: function(files,data,xhr)
+                {
+                    try{
+                        var obj = jQuery.parseJSON(data);
+                    } catch (error){
+                        console.log('Got bad data from the server: ' + error);
+                    }
+                    if(typeof obj !== 'object')
+                    {
+                        alert('Sorry, got bad data from the server');
+                        if(obj === false)
+                        {
+                            alert('Sorry, False returned. That\'s bad, yo!');
+                        }else
+                         {
+
+                         }
+                     }else
+                      {
+                          $("#updateMessageDiv").show();
+                          
+                          if((parseInt(obj.success, 10) > 0))
+                          {
+                              $("#updateMessageDiv").addClass('alert-success'); 
+                              $("#updateMessage").append('Songs Import was successful!');
+                              
+                          }else
+                          {
+                              $("#updateMessageDiv").addClass('alert-danger');
+                              $("#updateMessage").append('Songs Import was UNsuccessful');
+                          }
+                      }
+                }
+            });
+    });
+    </script>        
+{% endblock jscript %}

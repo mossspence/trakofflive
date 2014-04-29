@@ -1,0 +1,36 @@
+{% extends "base.html.twig" %}
+{% block title %}My Playlist{% endblock %}
+{% block content %}
+
+{% include 'navig.html.twig' %}
+
+
+    <div class="page-header alert alert-info" id="content">
+      <div class="container">
+        <h3><span class="glyphicon glyphicon-eye-open"></span> My Playlist</h3>
+        <table border="0" padding="4"><tbody>
+        <tr><td>Title: </td><td>{{ title }}</td></tr>
+        {% if hashTag %}<tr><td># Hash Tag: </td><td>{{ hashTag }}</td></tr>{% endif  %}
+        <tr><td>Date Stamp: </td><td>{{ dateListed }}</td></tr>
+        <tr><td>Date Mixed: </td><td>{{ mix_date }}</td></tr>
+        <tr><td>Listening Site: </td><td>{{ mix_url }}</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <div id="mainContent">    
+        <div class="container">
+            <div id="MyPlaylist">
+            
+                <div class="contentInfoContainer">            
+
+                    <div class="form-group input-group-sm" id="playlistDiv">
+                        <pre><code id="playlistSongs">{{ m3u8|raw }}</code></pre>
+                    </div>
+
+                </div>
+            </div>      
+        </div> <!-- /container -->     
+
+    </div>
+{% endblock content %}

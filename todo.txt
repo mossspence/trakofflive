@@ -1,0 +1,77 @@
+To Do
+-------------------
+
+= Doctrine / Eloquent / ORM =
+
+I'm debating whether I should use one of these. It is mostly not necessary but
+good to use going forward as I noticed a problem going from 5.3.x (at home) to
+5.3.x (at server godaddy).
+
+
+= Mail =
+
+I need to make a nice looking email. It should include
+my photo (check)
+website info (check)
+email info (check)
+only email link to playlist (check)
+    - DONE but it looks like p-r-u-p
+
+
+= Song JSON Output =
+(I do not want to do a callback so I have to abstract mp3info class)
+Only show location data to admin
+only show songs above 192 to non-admins
+    - prolly have to look into IoC/dependency injection
+
+
+= App Pages = 
+
+settings (users) - mixlength, starting BPM, starting keycode, hashtag
+signin (use OAuth 2)
+loader 
+     - serato crates
+     - NI Traktor Folder
+     - to the cloud 
+     - I can use csv and file reader modules by the phpleague
+playlists - doesn't work for long lists (noticed problems at 70 songs, but only on IE)
+            - decided I'm ONLY going to email a link the list (check)
+    - show spinner on reorder (check but doesn't appear to make a change)
+
+myplaylist {playlist-name}
+    - requires url-ready-name AND hashtag in database (check)
+livelists - show songs selected at/for eventID or #hastag
+
+
+search
+    - show last selected songs (JS written and available)
+    -   increase pagination button size (check)
+
+    - show song tools (php written and JSON output ready)
+    - get song images via Apple API and cache
+        php written to get songs
+    
+
+export - show hashtag info -> requires a tableColumn (check)
+
+playlist - show TimeElapsed per song - check
+navig - change login to Admin - check
+
+= HTML Pages = 
+
+remake homepage with existing stuff which is enough
+create a footer for homepage (check)
+about page - check
+social icons -> mixcloud, mixcrate, soundcloud (meh - too big for mobile)
+home - add shadow to text (check)
+search - tint cover image instead of row
+footer - no bullets (check)
+
+bio, about, REMOVE drinks, home finish (check)
+
+= theme =
+
+the night of your (their) life
+tons of drinks (check)
+packed dance floor
+no more empty dance floors (check)

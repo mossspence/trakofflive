@@ -1,0 +1,101 @@
+/* 
+    Created on : 19-Mar-2014, 2:58:43 PM
+    Author     : mark spence
+*/
+
+.navbar-static-top
+{
+    margin-bottom: -41px;
+}
+/* Thin headings */
+.thinheading {
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -1px;
+  text-shadow: 1px 2px 4px rgba(100, 100, 100, 0.3); 
+/*  text-shadow: 0px 4px 3px rgba(0,0,0,0.4),
+             0px 8px 13px rgba(0,0,0,0.1),
+             0px 18px 23px rgba(0,0,0,0.1); */
+}
+h1
+{
+/*    text-shadow: 1px 1px 4px rgba(100,100,100,.8); */
+text-shadow: 0px 4px 3px rgba(0,0,0,0.4),
+             0px 8px 13px rgba(0,0,0,0.1),
+             0px 18px 23px rgba(0,0,0,0.1);
+}
+.jumbotron > .container > p
+{
+    text-shadow: 1px 2px 4px rgba(100,100,100,.8);
+/* text-shadow: 0px 4px 3px rgba(0,0,0,0.4),
+             0px 8px 13px rgba(0,0,0,0.1),
+             0px 18px 23px rgba(0,0,0,0.1); */
+}
+#aboutImg
+{   /* hold_on__hold_on.jpg */
+    background: url(../images/empty_dancefloor_no-more.jpg) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;   
+}
+#homeImg
+{ 
+    background: url(../images/dj_tabletop.jpg) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;    
+}
+.wrapper {
+    position:fixed;
+    top:50%;
+    left:50%;
+    z-index: 5;
+}            
+/*
+.songImage
+{
+    max-width: 22px; width: 50%;
+    max-height: 22px; height: 50%;
+}
+*/
+/*
+#songList {width: 70%; margin: auto;}
+.list-group { background: transparent !important;}
+*/
+.warningOrange {background-color: #f0ad4e;}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 110px;
+}
+.scrollme
+{
+    height: 300px; overflow-y: scroll;
+}            
+#abovefooter
+{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 100px;
+    /* background-color: #fff; */
+    background-color: transparent;
+    display: none;
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #333;
+    border-top: solid 2px #ccc;
+}
+#footer > a { color: #fff; }

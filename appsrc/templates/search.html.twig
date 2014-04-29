@@ -1,0 +1,56 @@
+{% extends request.ajax ? "json.twig" : "base.html.twig" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+
+{% include 'navig.html.twig' %}
+
+
+
+    <div class="page-header alert alert-primary" id="content">
+      <div class="container">
+        <h3 class="hideaftersearch"><span class="glyphicon glyphicon-music"></span> Search</h3>
+        <p class="hideaftersearch">Search for a song (by title, artist, album, BPM, or Camelot Key), 
+            then add it to your playlist.</p>
+        <form class="form-horizontal" role="form" title="search" id="formsearch">
+            <div class="col-sm-4">
+                
+                <div><input class="form-control input-sm" id="q" name="q" type="text" length="50" placeholder="put your search term here">
+                    <span class="label label-default" id="songsCount"></span></div>
+                <ul id="pageNav"></ul>
+
+            </div>
+        </form>
+
+      </div>
+    </div>
+    
+    <div id="mainContent">
+        
+        <div class="container">
+            <div id="searchInfo">   
+            
+                <div class="alert alert-info alert-dismissable" data-bind="visible: updateMessage" style="display:none;">
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                  <span data-bind="text: updateMessage" ></span>
+               </div>
+
+                <div class="contentInfoContainer">
+
+                </div>
+            </div>      
+        </div> <!-- /container -->
+    </div>
+    <div id="abovefooter">
+      <div class="container">
+          <div style="float: left;"><button id="clearbutton" type="button" class="btn btn-warning">Clear Songs</button></div>
+          <div style="float: right;"><a href="../playlist/" id="exportbutton" type="button" class="btn btn-primary">Playlist</a></div>
+      </div>
+    </div>
+{% endblock content %}
+
+{% block jscript %}
+        <script  type="text/javascript" src="../bower_components/bootstrap-paginator/build/bootstrap-paginator.min.js"></script>
+        {% if jsonData %}
+        <script type="text/javascript">var jsonData ={{ jsonData|raw }};</script>
+        {% endif %}
+{% endblock jscript %}

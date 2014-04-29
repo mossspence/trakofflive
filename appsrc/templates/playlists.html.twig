@@ -1,0 +1,51 @@
+{% extends "base.html.twig" %}
+{% block title %}Playlists{% endblock %}
+{% block content %}
+
+{% include 'admin.navig.html.twig' %}
+
+
+
+    <div class="page-header alert alert-info" id="content">
+      <div class="container">
+        <h3><span class="glyphicon glyphicon-th-list"></span> Saved Playlists</h3>
+        <p>Check the status of playlists here.<br />
+            Has it been mixed yet? What's the URL of the mix? Put that here.
+        </p>
+      </div>
+    </div>            
+        <div class="container">
+            
+            <div class="listView">
+            <div class="table-responsive">
+                <table class="table table-condensed table-bordered table-striped">
+                  <thead>
+                    <th>DateTime</th>
+                    <th>User</th>
+                    <th>Title</th>
+                    <th>Comments</th>
+                    <th>Date Mixed</th>
+                    <th>URL</th>
+                 </thead>   
+                 <tbody data-bind="foreach: listEntry">
+                    <tr>
+                        <td data-bind="text: dateListed"></td>
+                        <td data-bind="html: username"></td>
+                        <td><a data-bind="html: title, attr: {href: url}"></a></td>
+                        <td data-bind="html: comments"></td>
+                        <td data-bind="text: mix_date"></td>
+                        <td data-bind="text: mix_url"></td>
+                    </tr>    
+                 </tbody>
+                </table>
+            </div>
+            </div>
+        </div> <!-- /container -->
+{% endblock content %}
+
+{% block jscript %}
+        {% if jsonData %}
+        <script type="text/javascript">var jsonData ={{ jsonData|raw }};</script>
+        {% endif %}
+        <script src="../js/playlists.js"></script>
+{% endblock jscript %}

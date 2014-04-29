@@ -1,0 +1,46 @@
+{% extends "base.html.twig" %}
+{% block title %}Transaction Log{% endblock %}
+{% block content %}
+
+{% include 'admin.navig.html.twig' %}
+
+
+    <div class="page-header alert alert-info" id="content">
+      <div class="container">
+        <h3><span class="glyphicon glyphicon-th-list"></span> (Yo Yo, What Just Happened?) Logs</h3>
+        <p>Interesting information about the files processed or analyzed will show up here. <br />
+        <em>Interesting, you say?</em> Sign me up!</p>
+      </div>
+    </div>
+    
+    <div id="mainContent">    
+        
+        <div class="container">
+            
+            <div class="logView">
+            <div class="table-responsive">
+                <table class="table table-condensed table-bordered table-striped">
+                    <thead>
+                    <th>DateTime</th>
+                    <th>Filename</th>
+                    <th>Message</th>
+                    </thead>   
+                 <tbody data-bind="foreach: errorEntry">
+                    <tr>
+                        <td data-bind="text: timedate"></td>
+                        <td data-bind="text: filename"></td>
+                        <td data-bind="text: message"></td>
+                    </tr>    
+                 </tbody>
+                </table>
+            </div>
+            </div>
+        </div> <!-- /container -->
+
+    </div>
+
+
+{% endblock content %}
+{% block jscript %}
+        <script src="../js/log.js"></script>
+{% endblock jscript %}

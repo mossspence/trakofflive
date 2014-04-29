@@ -1,0 +1,20 @@
+{
+    "require": {
+        "silex/silex": "~1.1",
+        "twig/twig": "1.*",
+        "swiftmailer/swiftmailer": ">=4.1.2,<4.2-dev"
+    },   
+    "autoload": {
+         "psr-0": { 
+             "moss": "appsrc" 
+         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "bower install"
+        ],
+        "post-update-cmd": [
+            "bower install"
+        ]
+    }    
+}

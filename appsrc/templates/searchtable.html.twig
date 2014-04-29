@@ -1,0 +1,52 @@
+{# empty Twig template #}
+<div class="contentInfoContainer table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Album</th>
+                <th>Time</th>
+                <th>Key</th>
+                <th>BPM</th>
+                <th></th>
+            </tr>
+        </thead>
+        
+        {# make it look like what is below #}
+        
+        {% for songData in songs %}
+            <li><a href="{{ songData.songID }}">{{ songData.title }}</a></li>
+        {% endfor %}        
+        <tbody>
+            <tr class="danger">
+                <td><div><img src="/imglib/covers/default.png" alt="...Baby One More Time" width="35px" height="35px"></div></td>
+                <td>...Baby One More Time</td>
+                <td>Britney Spears</td>
+                <td>1999 Billboard Top 100 Hits</td>
+                <td>3:32</td>
+                <td>6A</td>
+                <td>70</td>
+                <td>
+                    <button class="btn btn-primary btn-xs" type="button" data-songid="4027" data-songtitle="...Baby One More Time" data-songartist="Britney Spears" data-songkey="6A" data-songbpm="70" data-songplaytime="3:32">
+                        <span class="glyphicon glyphicon-plus-sign"></span>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Album</th>
+                <th>Time</th>
+                <th>Key</th>
+                <th>BPM</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
