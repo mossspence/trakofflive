@@ -17,3 +17,9 @@ Important Stuff
 ---------------
 
 I've used composer to install bunch of javascript libraries. Unfortunately I was using store.js instead of store2.js so I will have to fix that later. 
+
+Website
+--------
+
+A friend is hosting it for me right now as I play with it in different ways.
+http://oneilstuart.com/trakofflive
