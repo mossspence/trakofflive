@@ -17,12 +17,15 @@ function getValue(key)
 
 function getSongList()
 {
-    var playlist = storageToArray();
+    var playlist = getPlaylistOrder(); //storageToArray();
+    var songData;
     var songIDList = [];
 
     // I only need the songIDs
     for (var i = 0; i < playlist.length; i++) {
-        songIDList.push(parseInt(playlist[i].songID, 10));
+        songData = store.get(playlist[i]);
+        songIDList.push(songData.songID);
+        //songIDList.push(parseInt(playlist[i].songID, 10));
     }
     return songIDList;
 }

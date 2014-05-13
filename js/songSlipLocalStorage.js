@@ -35,6 +35,20 @@
  *  I'm also using two (2) types of pattern matching techniques
  *  I should rectify this.
  *  
+ *  I was about to rewrite this to save a list (array) of songIDs in one storage spot. That
+ *  storage spot would hold the songIDs (keys) in arranged order. However I realize (good thing)
+ *  before re-writing everything that doing so would not allow for duplicate songIDs. 
+ *  I want the option of duplicate songIDs.
+ *  
+ *  Au contraire!
+ *  
+ *  I can save duplicate songIDs in one array and note the position in the array.
+ *  I also have to save the position in the songs storage slot (as I currently do)
+ *  then if I delete a songID, I have to check the position before I delete it.
+ *  
+ *  However, everyone (and I mean everyone) claims that saving an object in 
+ *  one key is the absolutely fastest way to do everything. 
+ *  So I think I will do that.
  */
 "use strict";   // there has to be a better way of doing this.
 
@@ -54,6 +68,7 @@ if (!store.enabled) {
 }
 
 var prefix = "MyPlayListSongs__";       // this global var will be dealt with
+var playListIndexKey = 'playListOrder';
 var dragClass = "draglist";             // this class can be dragged in Sortable
 
 var myListID = "songList";  // the DOM id the SLIP script utilizes
@@ -62,9 +77,9 @@ $(document).ready(function() {
 
     $(window).bind('storage', function(event) {
         //alert(event + ': means storage changed');
-        //countTime();
-        //countSongs();
-        renderSongs();
+        countTime();
+        countSongs();
+        //renderSongs();
     });
 
 
@@ -80,30 +95,19 @@ $(document).ready(function() {
         }, false);
 
         list.addEventListener('slip:swipe', function(e) {
-            //if (thatWasSwipeToRemove) {
-            //alert('removing: ' + e.target.getAttribute('data-songKeyID'));
-            //console.log(e);
-            //console.log(this.getAttribute('data-songKeyID'));
-            //removeSong(this.getAttribute('data-songKeyID'));
-            //console.log(e.getAttribute('data-songKeyID'));
-            //console.log(e.target);
             var storageSongID = e.target.getAttribute('data-songKeyID');
             e.target.parentNode.removeChild(e.target);
             removeSong(storageSongID);
             //     }
         }); //, false);
-        /*    
-         list.addEventListener('slip:afterswipe', function(e){
-         removeSong(this.getAttribute('data-songKeyID'));
-         }, false);
-         */
+
         list.addEventListener('slip:reorder', function(e) {
             e.target.parentNode.insertBefore(e.target, e.detail.insertBefore);
-            //console.log(e.target.getAttribute('data-songKeyID'));
-            updateLocalStorageOrder(updateOrder(true));
+            // updateOrder() also changes playlistTiming 
+            // so I don't have to renderSongs()
+            savePlaylistOrder(updateOrder());
             return false;
         }); //, false);
-
 
         new Slip(list);
 
@@ -118,12 +122,9 @@ $(document).ready(function() {
      */
     $(document).on("click", '#clearbutton', function() {
         clearSongs();
-        // these should  be in a callback list or BOUND to storage as below
-        // and they are but they don't listen to a remove event so ...
-        //countTime();
-        //countSongs();
-
-        renderSongs();
+        var DOMElement = '#' + myListID;
+        $(DOMElement).empty();
+        //renderSongs();
     });
 
 }); /* end ready */
@@ -151,7 +152,8 @@ function addSong(JSONObject, fromStorage)
 
     // add song
     // Store an object literal - store.js uses JSON.stringify under the hood
-    newKey = prefix + count;
+     
+    newKey = prefix + count + Math.floor((Math.random() * 1000) + 1);
     //store.set(newKey, newSong);
 
     if (fromStorage)
@@ -159,26 +161,26 @@ function addSong(JSONObject, fromStorage)
         store.set(newKey,
                 {
                     songID: song.songID,
-                    songDesc: song.songDesc,
+                    //songDesc: song.songDesc,
                     songTitle: song.songTitle,
                     songArtist: song.songArtist,
                     songKey: song.songKey,
                     songBPM: song.songBPM,
-                    songPlaytime: song.songPlaytime,
-                    songPosition: count
+                    songPlaytime: song.songPlaytime //,
+                    //songPosition: count
                 });
     } else
     {
         store.set(newKey,
                 {
                     songID: song.ID,
-                    songDesc: song.title + ', ' + song.artist,
+                    //songDesc: song.title + ', ' + song.artist,
                     songTitle: song.title,
                     songArtist: song.artist,
                     songKey: song.initial_key,
                     songBPM: song.bpm,
-                    songPlaytime: song.playtime,
-                    songPosition: count
+                    songPlaytime: song.playtime //,
+                    //songPosition: count
                 });
     }
 
@@ -189,6 +191,9 @@ function addSong(JSONObject, fromStorage)
     {
         // console.log('Song added successfully.');
         retVal = true;
+        var newOrder = getPlaylistOrder();
+        newOrder.push(newKey);
+        savePlaylistOrder(newOrder);
     }
     // re-render playlist
     renderSongs();
@@ -213,8 +218,10 @@ function removeSong(localStorageKey)
         retVal = true;
 
         // re-render playlist
-        var newOrder = updateOrder();
-        updateLocalStorageOrder(newOrder);
+        //var newOrder = updateOrder();
+        var newOrder = removeArrayElement(getPlaylistOrder(), localStorageKey);
+        savePlaylistOrder(newOrder);
+        //updateLocalStorageOrder(newOrder);
 
         // update song positions
         renderSongs();
@@ -224,22 +231,17 @@ function removeSong(localStorageKey)
 
 function clearSongs()
 {
-    deletemyPrefix();
-    /*
-     store.forEach(function(key, val)
-     {
-     if(key.indexOf(prefix) === 0)   // only remove keys with prefix
-     {
-     // perhaps this is overkill but I noticed that 
-     // this function is flaky since it only sometimes
-     // removes half the keys
-     while((typeof(store.get(key)) !== 'undefined'))
-     {
-     window.setTimeout(removeSong(key),timeout);
-     }
-     }
-     });
-     */
+    var re = new RegExp('^(' + prefix + ')');
+    Object.keys(window.localStorage).forEach(function(key)
+    {
+        if (re.test(key))
+        {
+            //window.localStorage.removeItem(key);
+            store.remove(key);
+        }
+    });
+    // remove index
+    store.remove('playListOrder');
 }
 // this works
 function countSongs()
@@ -276,7 +278,7 @@ function convertToSeconds(songTime)
         expVal *= multiplier;
     }
     
-    return (!isNaN(seconds)) ? seconds : 0;
+    return (isNaN(seconds)) ? 0 : seconds;
 }
 
 function convertSecondsToMinutes(songSeconds)
@@ -285,7 +287,7 @@ function convertSecondsToMinutes(songSeconds)
     // convert seconds to minutes and seconds
     minutes = Math.floor(songSeconds / 60);
     //minutes = pad(minutes, 2);
-    return (!isNaN(minutes)) ? minutes : 0;
+    return (isNaN(minutes)) ? 0 : minutes;
 }
 
 function convertMinutesToHours(songMinutes)
@@ -293,7 +295,7 @@ function convertMinutesToHours(songMinutes)
     var hours = 0;
     // convert seconds to minutes and seconds
     hours = Math.floor(songMinutes / 60);
-    return (!isNaN(hours)) ? hours : 0;
+    return (isNaN(hours)) ? 0 : hours;
 }
 
 function addSongTimes(song1, song2)
@@ -318,25 +320,11 @@ function countTime()
         } else
         {
             songData = store.get(key);
-            // time = (songData.songPlaytime).split(':');
-
-            // minutes are worth 60 seconds.
-            // .9 is completely random  percentage to prepare for mixout
-            // but this is more trouble than it is worth
-            //var songSeconds = (+time[0]) * 60 + (+time[1]);
-            //seconds = seconds + (songSeconds * .9).toFixed(2);
-            // seconds = seconds + (+time[0]) * 60 + (+time[1]);
             seconds = seconds + convertToSeconds(songData.songPlaytime);
             count++;
         }
     });
-/*
-    // convert seconds to minutes and seconds
-    minutes = Math.floor(seconds / 60);
-    hours = Math.floor(minutes / 60);
-    secondsOutput = pad((seconds - minutes * 60), 2);
-    minutes = pad(minutes, 2);
-*/
+
     minutes = convertSecondsToMinutes(seconds);
     secondsOutput = pad((seconds - minutes * 60), 2);
     hours = convertMinutesToHours(minutes);
@@ -366,25 +354,6 @@ function showEverything()
     console.log('Items stored: ' + count);
 }
 
-// this works properly and with regularity
-// but I wish I knew why the other individually didn't
-// I have to assume that this regular expression test is better than
-// what I was using before
-// (key.indexOf(prefix) !== 0)
-// (key.indexOf(prefix) === 0) -> I think this is really bad
-
-function deletemyPrefix()
-{
-    var re = new RegExp('^(' + prefix + ')');
-    Object.keys(window.localStorage)
-            .forEach(function(key) {
-                if (re.test(key)) {
-                    //window.localStorage.removeItem(key);
-                    store.remove(key);
-                }
-            });
-}
-
 function renderSongs()
 {
     spinner.show();
@@ -398,6 +367,9 @@ function renderSongs()
     // this is for testing and is to be used by the search
     
     spinner.hide();
+    
+    // this is going to change but it is the list order in a single storage space
+    //makeOrderIndex();
 }
 
 function loadLocalStorageData(jsonData)
@@ -408,40 +380,42 @@ function loadLocalStorageData(jsonData)
     }
 }
 
-function updateOrder(HTMLList)
+function updateOrder()
 {
-    // optional function paramater, defaults to true
-    //  true because this function will be used more often with HTMLList data
-
-    HTMLList = typeof HTMLList !== 'undefined' ? true : false;
-
     var nums = document.getElementById(myListID);
     var listItem = nums.getElementsByTagName("li");
     var newOrder = [];
-    var songData;
+    var timeElem, indexElem;
+    var hours, minutes, seconds, playTimeLength = 0;
+    var playtimeInfoText = '0:00:00';
 
-    var listToLoop = (HTMLList) ? listItem : window.localStorage;
+    var listToLoop = listItem;
 
     for (var i = 0; i < listToLoop.length; i++)
     {
-        if (HTMLList)
-        {
-            newOrder.push(parseInt(listToLoop[i].getAttribute('data-songPosition'), 10));
-        } else
-        {
-            var key = listToLoop.key(i);
-            if (key.indexOf(prefix) !== 0) {
-                continue;
-            }
-            songData = JSON.parse(listToLoop[key]);
-            newOrder.push(parseInt(songData.songPosition, 10));
-        }
+        newOrder.push(listToLoop[i].getAttribute('data-songKeyID'));
+        // update li index number
+        // li div div h4
+        indexElem = $(listToLoop[i]).find('h4');
+        indexElem.text(i + 1);
+        // update playlist song time start
+        // .playTimeStart
+        timeElem = $(listToLoop[i]).find('.playTimeStart');
+        timeElem.text(playtimeInfoText);
+        
+        // update playtime
+        // calc playlist time
+        playTimeLength = playtimeInfoText;
+        seconds = addSongTimes(playTimeLength, listToLoop[i].getAttribute('data-songPlaytime'));
+        minutes = convertSecondsToMinutes(seconds);
+        hours = convertMinutesToHours(minutes);
+        playtimeInfoText = hours + ':' + pad(minutes - hours * 60, 2) + ':' + pad((seconds - minutes * 60), 2);
+
     }
-    newOrder = (HTMLList) ? newOrder : newOrder.sort(function(a, b) {
-        return a - b;
-    });
+
     return newOrder;
 }
+/*
 // expects array of stringified JSON objects
 function updateLocalStorageOrder(newOrder)
 {
@@ -454,9 +428,9 @@ function updateLocalStorageOrder(newOrder)
     });
     renderSongs();
 }
-
-// returns array of JSON objects
-// not currently used, but I should
+// */
+/*
+// returns array of JSON objects in playlist order
 function storageToArray()
 {
     var jsonDataArray = [];
@@ -475,124 +449,7 @@ function storageToArray()
     });
     return jsonDataArray;
 }
-
-/*
- * Place the local storage data
- * into the DOM
- * uses '#songList' UL/OL
- * adds 
- *  data-songPosition
- *  data-songKey
- *      to allow for easy re-arangement and deletion
- * 
- */
-function renderLocalStorage()
-{
-    var songs = []; // this array will hold the correct order of songs
-    var songData;
-    var index;
-    var listIndex;
-    var fragment = document.createDocumentFragment();
-
-    store.forEach(function(key, val)
-    {
-        if (key.indexOf(prefix) !== 0) {
-            // do nothing
-        } else
-        {
-            // val = store.get(key);    // should be done already
-            songData = store.get(key);
-            index = parseInt(songData.songPosition, 10);
-            songs[index] = songData;            
-        }
-    });
-
-
-    //output the correct order
-    $.each(songs, function(index, songData) {
-        
-            // bootstrap OVERFLOW rules override index output
-            // so "EFF you," Jobu, I do it myself.
-            listIndex = index + 1;
-            var listText = listIndex + '. '
-                    + songData.songDesc + ' <br /><small> ['
-                    + songData.songBPM + ' bpm] '
-                    + songData.songKey + ' ('
-                    + songData.songPlaytime + ')</small>';
-
-            var seconds = addSongTimes(playTimeLength, songData.songPlaytime);
-            var minutes = convertSecondsToMinutes(seconds);
-            var hours = convertMinutesToHours(minutes);
-            var playtimeInfoText = hours + ':' + pad(minutes - hours * 60, 2) + ':' + pad((seconds - minutes * 60), 2);
-            playTimeLength = playtimeInfoText;
-                    
-            var songPlayTimeInfo = document.createElement('div');
-            /*
-            songPlayTimeInfo.classList.add('small');
-            songPlayTimeInfo.classList.add('text-muted');
-            songPlayTimeInfo.classList.add('pull-right');
-            // */
-            $(songsongPlayTimeInfo).addClass('small text-muted pull-right');
-            songPlayTimeInfo.innerHTML = playtimeInfoText;
-
-            // reduce draggable space to allow for button interaction
-            var draggable = document.createElement('span');
-            //draggable.classList.add('draglist');
-            $(draggable).addClass('draglist');
-            draggable.setAttribute("data-songPosition", songData.songPosition);
-            draggable.setAttribute("data-songKeyID", prefix + index);
-            // draggable.appendChild(listText);
-            draggable.innerHTML = listText + ' ' + playtimeIntoText;
-
-            var listItem = document.createElement('li');
-            //listItem.classList.add('list-group-item');
-            $(listItem).addClass('list-group-item');
-            // required for re-sort
-            listItem.setAttribute("data-songPosition", songData.songPosition);
-            listItem.setAttribute("data-songKeyID", prefix + index);
-
-            var badge = document.createElement('span');
-            //badge.classList.add('badgel');
-            //badge.style.backgroundColor="yellow";
-            badge.style.cssFloat = "right";
-
-            // required for deleting item
-            var buttClick = document.createElement('button');
-            /*
-            buttClick.classList.add('btn');
-            buttClick.classList.add('btn-warning');
-            buttClick.classList.add('removebutton');
-            buttClick.classList.add('btn-xs');
-            // */
-            $(buttClick).addClass('btn btn-warning removebutton btn-xs');
-            buttClick.setAttribute("type", 'button');
-            buttClick.setAttribute("data-songKeyID", prefix + index);
-            //buttClick.setAttribute("data-songPosition", songData.songPosition);
-
-            var minusSpan = document.createElement('span');
-            /*
-            minusSpan.classList.add('glyphicon');
-            minusSpan.classList.add('glyphicon-minus-sign');
-            // */
-            $(minusSpan).addClass('glyphicon glyphicon-minus-sign');
-
-            buttClick.appendChild(minusSpan);
-            badge.appendChild(buttClick);
-
-            listItem.appendChild(draggable);
-            if (!areWeMobile())
-                listItem.appendChild(badge);
-    
-        fragment.appendChild(listItem);
-    });
-
-    //empty the current HTML OL/UL
-    var DOMElement = '#' + myListID;
-    $(DOMElement).empty();
-
-    $(DOMElement).append(fragment);
-}
-
+// */
 /*
  * Place the local storage data
  * into the DOM
@@ -605,170 +462,126 @@ function renderLocalStorage()
  */
 function renderLocalStorageToDiv()
 {
-    var songs = []; // this array will hold the correct order of songs
-    var songData;
-    var index;
-    var listIndex;
-    var hours, minutes, seconds, playTimeLength = 0;
+    var divRow, indexDiv, indexNum, textDiv, songBPMInfo, songKeyInfo,
+            songTimeInfo, songPlayTimeInfo, songTitleInfo, songArtistInfo,
+            draggable, listItem, badge, buttClick, minusSpan, buttonDiv, songData;
+    //var listIndex = 0;
+    var hours, minutes, seconds, playTimeLength, listIndex = 0;
     var playtimeInfoText = '0:00:00';
 
     var fragment = document.createDocumentFragment();
 
-    store.forEach(function(key, val)
-    {
-        if (key.indexOf(prefix) !== 0) {
-            // do nothing
-        } else
-        {
-            // val = store.get(key);    // should be done already
-            songData = store.get(key);
-            index = parseInt(songData.songPosition, 10);
-            songs[index] = songData;            
-        }
-    });
+    var songs = getPlaylistOrder();
+    
     //output the correct order
-    $.each(songs, function(index, songData) {
+    $.each(songs, function(key, index)
+    {
+        songData = store.get(index);
 
-            // bootstrap OVERFLOW rules override index output
-            // so "EFF you," Jobu, I do it myself.
-            listIndex = index + 1;
-            var listText = listIndex + '. '
-                    + songData.songDesc + ' <br /><small> ['
-                    + songData.songBPM + ' bpm] '
-                    + songData.songKey + ' ('
-                    + songData.songPlaytime + ')</small>';
+        // bootstrap OVERFLOW rules override index output
+        // so "EFF you," Jobu, I do it myself.
+        listIndex = listIndex + 1;
 
-            var divRow = document.createElement('div');
-            //divRow.classList.add('row');
-            $(divRow).addClass('row');
+        divRow = document.createElement('div');
+        $(divRow).addClass('row');
 
-            var indexDiv = document.createElement('div');
-            //indexDiv.classList.add('col-xs-1');
-            //indexDiv.classList.add('bg-warning');
-            // */
-            $(indexDiv).addClass('col-xs-1 bg-warning');
-            
-            var indexNum = document.createElement('h4');
-            indexNum.innerHTML = listIndex;
-            indexDiv.appendChild(indexNum);
+        indexDiv = document.createElement('div');
+        $(indexDiv).addClass('col-xs-1 bg-warning');
 
-            var textDiv = document.createElement('div');
-            //textDiv.classList.add('col-xs-10');
-            $(textDiv).addClass('col-xs-10');
+        indexNum = document.createElement('h4');
+        indexNum.innerHTML = listIndex;
+        indexDiv.appendChild(indexNum);
 
-            var songText = document.createElement('span');
-            songText.setAttribute('style', 'text-transform:uppercase');
-            songText.innerHTML = songData.songDesc + '<br />';
+        textDiv = document.createElement('div');
+        //textDiv.classList.add('col-xs-10');
+        $(textDiv).addClass('col-xs-10');
 
-            var songBPMInfo = document.createElement('span');
-            //songBPMInfo.classList.add('small');
-            //songBPMInfo.classList.add('text-muted');
-            $(songBPMInfo).addClass('small text-muted');
-            songBPMInfo.innerHTML = ' [' + songData.songBPM + ' bpm] ';
+        songBPMInfo = document.createElement('span');
+        $(songBPMInfo).addClass('small text-muted');
+        songBPMInfo.innerHTML = ' [' + songData.songBPM + ' bpm] ';
 
-            var songKeyInfo = document.createElement('span');
-            //songKeyInfo.classList.add('small');
-            //songKeyInfo.classList.add('text-muted');
-            $(songKeyInfo).addClass('small text-muted');
-            songKeyInfo.innerHTML = songData.songKey;
+        songKeyInfo = document.createElement('span');
+        $(songKeyInfo).addClass('small text-muted');
+        songKeyInfo.innerHTML = songData.songKey;
 
-            var songTimeInfo = document.createElement('span');
-            //songTimeInfo.classList.add('small');
-            //songTimeInfo.classList.add('text-muted');
-            $(songTimeInfo).addClass('small text-muted');
-            songTimeInfo.innerHTML = ' (' + songData.songPlaytime + ') ';
+        songTimeInfo = document.createElement('span');
+        $(songTimeInfo).addClass('small text-muted');
+        songTimeInfo.innerHTML = ' (' + songData.songPlaytime + ') ';
 
-            // calculated at end of loop
-            
-            var songPlayTimeInfo = document.createElement('div');
-            //songPlayTimeInfo.classList.add('small');
-            //songPlayTimeInfo.classList.add('text-muted');
-            //songPlayTimeInfo.classList.add('pull-right');
-            $(songPlayTimeInfo).addClass('small text-muted pull-right');
-            songPlayTimeInfo.innerHTML = playtimeInfoText;
-            /*
-             textDiv.appendChild(songText);
-             // */
+        // calculated at end of loop
+        songPlayTimeInfo = document.createElement('div');
+        $(songPlayTimeInfo).addClass('playTimeStart small text-muted pull-right');
+        songPlayTimeInfo.innerHTML = playtimeInfoText;
 
-            var songTitleInfo = document.createElement('span');
-            songTitleInfo.setAttribute('style', 'text-transform:uppercase');
-            //songTitleInfo.classList.add('text-info');
-            $(songTitleInfo).addClass('text-info');
-            songTitleInfo.innerHTML = songData.songTitle;
+        songTitleInfo = document.createElement('span');
+        songTitleInfo.setAttribute('style', 'text-transform:uppercase');
+        //songTitleInfo.classList.add('text-info');
+        $(songTitleInfo).addClass('text-info');
+        songTitleInfo.innerHTML = songData.songTitle;
 
-            textDiv.appendChild(songTitleInfo);
+        textDiv.appendChild(songTitleInfo);
 
-            var songArtistInfo = document.createElement('span');
-            //songTitleInfo.classList.add('text-primary');
-            $(songArtistInfo).addClass('text-primary');
-            songArtistInfo.innerHTML = ' ' + songData.songArtist + '<br /> ';
+        songArtistInfo = document.createElement('span');
+        //songTitleInfo.classList.add('text-primary');
+        $(songArtistInfo).addClass('text-primary');
+        songArtistInfo.innerHTML = ' ' + songData.songArtist + '<br /> ';
 
-            textDiv.appendChild(songArtistInfo);
+        textDiv.appendChild(songArtistInfo);
 // */
-            textDiv.appendChild(songBPMInfo);
-            textDiv.appendChild(songKeyInfo);
-            textDiv.appendChild(songTimeInfo);
-            textDiv.appendChild(songPlayTimeInfo);
+        textDiv.appendChild(songBPMInfo);
+        textDiv.appendChild(songKeyInfo);
+        textDiv.appendChild(songTimeInfo);
+        textDiv.appendChild(songPlayTimeInfo);
 
-            // reduce draggable space to allow for button interaction
-            var draggable = document.createElement('span');
-            //draggable.classList.add('draglist');
-            $(draggable).addClass('draglist');
-            draggable.setAttribute("data-songPosition", songData.songPosition);
-            draggable.setAttribute("data-songKeyID", prefix + index);
-            // draggable.appendChild(listText);
-            draggable.innerHTML = listText;
+        // reduce draggable space to allow for button interaction
+        draggable = document.createElement('span');
+        //draggable.classList.add('draglist');
+        $(draggable).addClass('draglist');
+        //draggable.setAttribute("data-songPosition", songData.songPosition);
+        draggable.setAttribute("data-songKeyID", index);
+        // draggable.appendChild(listText);
+        //draggable.innerHTML = listText;
 
-            var listItem = document.createElement('li');
-            //listItem.classList.add('list-group-item');
-            $(listItem).addClass('list-group-item');
-            // required for re-sort
-            listItem.setAttribute("data-songPosition", songData.songPosition);
-            listItem.setAttribute("data-songKeyID", prefix + index);
+        listItem = document.createElement('li');
+        //listItem.classList.add('list-group-item');
+        $(listItem).addClass('list-group-item');
+        // required for re-sort
+        //listItem.setAttribute("data-songPosition", songData.songPosition);
+        listItem.setAttribute("data-songKeyID", index);
+        listItem.setAttribute("data-songPlaytime", songData.songPlaytime);
 
-            //listItem.appendChild(draggable);
+        //listItem.appendChild(draggable);
 
-            divRow.appendChild(indexDiv);
+        divRow.appendChild(indexDiv);
 
-            divRow.appendChild(textDiv);
-            if (!areWeMobile())
-            {
-                var badge = document.createElement('span');
-                //badge.classList.add('badgel');
-                //badge.style.backgroundColor="yellow";
-                badge.style.cssFloat = "right";
+        divRow.appendChild(textDiv);
+        if (!areWeMobile())
+        {
+            badge = document.createElement('span');
+            badge.style.cssFloat = "right";
 
-                // required for deleting item
-                var buttClick = document.createElement('button');
-                /*
-                buttClick.classList.add('btn');
-                buttClick.classList.add('btn-warning');
-                buttClick.classList.add('removebutton');
-                buttClick.classList.add('btn-sm');
-                // */
-                $(buttClick).addClass('btn btn-warning removebutton btn-xs');
-                buttClick.setAttribute("type", 'button');
-                buttClick.setAttribute("data-songKeyID", prefix + index);
-                //buttClick.setAttribute("data-songPosition", songData.songPosition);
+            // required for deleting item
+            buttClick = document.createElement('button');
+            $(buttClick).addClass('btn btn-warning removebutton btn-xs');
+            buttClick.setAttribute("type", 'button');
+            buttClick.setAttribute("data-songKeyID", index);
 
-                var minusSpan = document.createElement('span');
-                //minusSpan.classList.add('glyphicon');
-                //minusSpan.classList.add('glyphicon-minus-sign');
-                $(minusSpan).addClass('glyphicon glyphicon-minus-sign');
+            minusSpan = document.createElement('span');
+            $(minusSpan).addClass('glyphicon glyphicon-minus-sign');
 
-                buttClick.appendChild(minusSpan);
-                badge.appendChild(buttClick);
+            buttClick.appendChild(minusSpan);
+            badge.appendChild(buttClick);
 
-                var buttonDiv = document.createElement('div');
-                //buttonDiv.classList.add('col-xs-1');
-                $(buttonDiv).addClass('col-xs-1');
-                
-                //listItem.appendChild(badge);
-                buttonDiv.appendChild(badge);
-                divRow.appendChild(buttonDiv);
-            }
+            buttonDiv = document.createElement('div');
+            //buttonDiv.classList.add('col-xs-1');
+            $(buttonDiv).addClass('col-xs-1');
 
-            listItem.appendChild(divRow);
+            //listItem.appendChild(badge);
+            buttonDiv.appendChild(badge);
+            divRow.appendChild(buttonDiv);
+        }
+
+        listItem.appendChild(divRow);
             
         fragment.appendChild(listItem);
 
@@ -778,7 +591,6 @@ function renderLocalStorageToDiv()
         minutes = convertSecondsToMinutes(seconds);
         hours = convertMinutesToHours(minutes);
         playtimeInfoText = hours + ':' + pad(minutes - hours * 60, 2) + ':' + pad((seconds - minutes * 60), 2);
-        
     });
 
     //empty the current HTML OL/UL
@@ -794,6 +606,7 @@ function areWeMobile()
     return ($(window).width() < myMobileThreshold);
 }
 
+/*
 function getLastSongAdded()
 {
     // get BPM and camelot of last song in list
@@ -803,7 +616,70 @@ function getLastSongAdded()
     if(index >= 0)
     {
         var songData = store.get(prefix + index);
-        //alert ('BPM: ' + songData.songBPM + ' Key: ' + songData.songKey);
     }
     return index;
+}
+// */
+/*
+ * function makeOrderIndex
+ * 
+ *  this is an in-between function to move my stupid algorithm to a better one
+ *  i save the storage keys in an array which is stringified 
+ *  
+ */
+/*
+function makeOrderIndex()
+{
+    var key = 'playListOrder';
+    var storeOrder = [];
+    //var listOrderArray = store.get(key);
+    if(countSongs())
+    {
+        store.forEach(function(keyIndex, val)
+        {
+            if (keyIndex.indexOf(prefix) !== 0) {
+                // do nothing
+            } else
+            {
+                storeOrder.push(keyIndex);          
+            }
+        });
+        //store.set(key, JSON.stringify(storeOrder));
+        store.set(key, storeOrder.join(','));
+    }
+    return true;
+} 
+// */
+function removeArrayElement(array, element)
+{
+    array = jQuery.grep(array, function(value)
+    {
+        return value !== element;
+    });
+    return array;
+}
+//returns an array
+function getPlaylistOrder()
+{
+    //return JSON.parse(store.get('playListOrder'));
+    var playlist = store.get('playListOrder');
+    return (typeof playlist !== 'undefined') 
+                            ? playlist.split(',') : [];
+
+    //return (store.get('playListOrder')).split(',');
+}
+// accepts array of values
+//boy I should use some assertions
+function savePlaylistOrder(storeOrder)
+{
+    store.set('playListOrder', storeOrder.join(','));
+}
+
+function getLastSong()
+{
+    var storeOrder = getPlaylistOrder();
+    var storageKey = storeOrder.pop();
+    storageKey = getPlaylistOrder().pop();
+    console.log('Last Song: ' + storageKey);
+    return store.get(storageKey);
 }
