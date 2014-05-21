@@ -1,14 +1,34 @@
 "use strict";
-function areWeMobile()
-{
-    var myMobileThreshold = 480;
-    return ($(window).width() < myMobileThreshold);
-}
+var browserInfo = (function(){
+    function browserInfo()
+    {    
+        this.areWeMobile = function()
+        {
+            var myMobileThreshold = 600;
+            return ($(window).width() < myMobileThreshold);
+        };
+    }
+    return new browserInfo();
+}());
+
+
+var songsShowcase = (function(){
+    function songsShowcase()
+    {    
+        this.areWeMobile = function()
+        {
+            var myMobileThreshold = 600;
+            return ($(window).width() < myMobileThreshold);
+        };
+    }
+    return new songsShowcase();
+}());
+
 function makeHeaderFooter()
 {
     // first header item is for images
     // last header item is for Add button
-    if(areWeMobile())
+    if(window.browserInfo.areWeMobile())
     {
         var headerArray = ['', 'Title', 'Time', 'Key', 'BPM', ''];
     }else
@@ -38,7 +58,7 @@ function setTheTable()
     //table.classList.add("table", "table-hover");
     $(table).addClass("table", "table-hover");
     
-    if(!areWeMobile())
+    if(!window.browserInfo.areWeMobile())
     {
          //table.classList.add("table-condensed");
          $(table).addClass("table-condensed");
@@ -124,10 +144,10 @@ function outputTable(jsonData)
         var tdimage = document.createElement('td'); // image
 
         var td1 = document.createElement('td'); //title
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             var td2 = document.createElement('td'); // artist
         
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             var td3 = document.createElement('td');  //album
         
         var tdtime = document.createElement('td');  // time
@@ -143,7 +163,7 @@ function outputTable(jsonData)
         //buttClick.classList.add('btn-primary');
         $(buttClick).addClass('btn btn-primary');
         
-        var buttonSize = (areWeMobile()) ? 'btn-sm' : 'btn-xs';
+        var buttonSize = (window.browserInfo.areWeMobile()) ? 'btn-sm' : 'btn-xs';
         //buttClick.classList.add(buttonSize);
         $(buttClick).addClass(buttonSize);
         
@@ -167,9 +187,9 @@ function outputTable(jsonData)
 
         var text1 = document.createTextNode(songData.title);
         
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             var text2 = document.createTextNode(songData.artist);
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             var text3 = document.createTextNode(songData.album);
         var texttime = document.createTextNode(songData.playtime);
         var text4 = document.createTextNode(songData.initial_key);
@@ -183,9 +203,9 @@ function outputTable(jsonData)
         //tdimage.appendChild(imagebox);
         tdimage.appendChild(divimage);
         td1.innerHTML = songData.title;         // td1.appendChild(text1);
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             td2.innerHTML = songData.artist;    // td2.appendChild(text2);
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             td3.innerHTML = songData.album;     // td3.appendChild(text3);
         tdtime.appendChild(texttime);
         td4.appendChild(text4);
@@ -196,9 +216,9 @@ function outputTable(jsonData)
         
         tr.appendChild(tdimage);
         tr.appendChild(td1);
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             tr.appendChild(td2);
-        if(!areWeMobile())
+        if(!window.browserInfo.areWeMobile())
             tr.appendChild(td3);
         tr.appendChild(tdtime);
         tr.appendChild(td4);
@@ -237,7 +257,7 @@ function outputTable(jsonData)
     // remove whatever is in the spot
     $('.contentInfoContainer').empty();
     $('.contentInfoContainer').append(searchTable);
-    if(!areWeMobile())
+    if(!window.browserInfo.areWeMobile())
     {   
         //searchTable.parentNode.classList.add('table-responsive');
         $(searchTable.parentNode).addClass("table-responsive");
@@ -349,7 +369,7 @@ function runSearch(q, page)
         url = url + page + '/';
     }
     
-    if(areWeMobile()) { performKeyBoardHide(); }
+    if(window.browserInfo.areWeMobile()) { performKeyBoardHide(); }
 
     $(document).ajaxStart(function() { spinner.show(); });
     $(document).ajaxComplete(function() { spinner.hide();});
@@ -543,8 +563,8 @@ $(document).ready(function()
     
     // has to be done everytime 
     // for the playlist which might be on a different page
-    countTime();
-    countSongs();
+    window.playlist.countTime();
+    window.playlist.countSongs();
 
 
     $(document).on("click", 'button', function() {
@@ -561,7 +581,7 @@ $(document).ready(function()
                 songPlaytime: this.getAttribute('data-songplaytime')
             };
 
-            var localStorageKey = addSong(JSONSong, true);
+            var localStorageKey = window.playlist.addSong(JSONSong, true);
             this.setAttribute("data-songkeyid", localStorageKey);
             this.removeAttribute('data-songid');
 

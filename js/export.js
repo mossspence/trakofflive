@@ -17,7 +17,7 @@ function getValue(key)
 
 function getSongList()
 {
-    var playlist = getPlaylistOrder(); //storageToArray();
+    var playlist = window.playlist.getPlaylistOrder(); //storageToArray();
     var songData;
     var songIDList = [];
 
@@ -95,16 +95,16 @@ function ExportViewModel() {
             type: 'POST',
             data: data,
             success: function (response) {
-                 self.updateMessage('Playlist has been posted to your favourite DJ. Expect your mix real soon.');
+                self.updateMessage('Playlist has been posted to your favourite DJ. Expect your mix real soon.');
                 self.clearExportData();
                 $('#playlistDiv').hide();
                 $('#playlistSongs').empty();
                 
                 // I should also delete the current playlist from local storage
-                clearSongs();
+                window.playlist.clearSongs();
                 // maybe even disable the submit button
-                countTime();
-                countSongs();                
+                window.playlist.countTime();
+                window.playlist.countSongs();                
                 
                 self.playlistTitle(null);
                 self.playlistComments(null);
@@ -164,8 +164,8 @@ function ExportViewModel() {
 }
 $(document).ready(function() {
 
-    countTime();
-    countSongs();
+    window.playlist.countTime();
+    window.playlist.countSongs();
     getM3U8();  // get the playlist
 
     var exportList = new ExportViewModel();
