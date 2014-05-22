@@ -4,8 +4,30 @@ var browserInfo = (function(){
     {    
         this.areWeMobile = function()
         {
-            var myMobileThreshold = 600;
+            var myMobileThreshold = 600;  // using 600, @60 to always be true
             return ($(window).width() < myMobileThreshold);
+        };
+        /*
+         * -- performKeyBoardHide --
+         *  for mobile devices - close the keyboard after a search
+         */
+        this.performKeyBoardHide = function()
+        {
+            var field = document.createElement('input');
+            var appendableID = document.getElementById("content");
+            field.setAttribute('type', 'radio');
+            field.setAttribute('id', 'completelyHidden');
+            //document.body.appendChild(field);
+
+            $(appendableID).append(field);
+
+            setTimeout(function() {
+                field.focus();
+                setTimeout(function() {
+                    field.setAttribute('style', 'display:none;');
+                }, 1);
+            }, 1);
+            //field.parentNode.removeChild(field);
         };
     }
     return new browserInfo();
@@ -17,8 +39,30 @@ var songsShowcase = (function(){
     {    
         this.areWeMobile = function()
         {
-            var myMobileThreshold = 600;
+            var myMobileThreshold = 600;  // using 600, @60 to always be true
             return ($(window).width() < myMobileThreshold);
+        };
+        /*
+         * -- performKeyBoardHide --
+         *  for mobile devices - close the keyboard after a search
+         */
+        this.performKeyBoardHide = function()
+        {
+            var field = document.createElement('input');
+            var appendableID = document.getElementById("content");
+            field.setAttribute('type', 'radio');
+            field.setAttribute('id', 'completelyHidden');
+            //document.body.appendChild(field);
+
+            $(appendableID).append(field);
+
+            setTimeout(function() {
+                field.focus();
+                setTimeout(function() {
+                    field.setAttribute('style', 'display:none;');
+                }, 1);
+            }, 1);
+            //field.parentNode.removeChild(field);
         };
     }
     return new songsShowcase();
@@ -28,13 +72,16 @@ function makeHeaderFooter()
 {
     // first header item is for images
     // last header item is for Add button
+    /*
     if(window.browserInfo.areWeMobile())
     {
         var headerArray = ['', 'Title', 'Time', 'Key', 'BPM', ''];
     }else
      {
+         */
+
          var headerArray = ['', 'Title', 'Artist', 'Album', 'Time', 'Key', 'BPM', ''];
-     }
+     //}
     
     var row = document.createElement('tr');
     var td;
@@ -42,6 +89,10 @@ function makeHeaderFooter()
     for(var i=0; i < headerArray.length; i++)
     {
         td = document.createElement('th');
+        if(headerArray[i] === 'Artist' || headerArray[i] === 'Album' )
+        {
+            $(td).addClass('hidden-xs hidden-sm');
+        }
         text = document.createTextNode(headerArray[i]);
         td.appendChild(text);
         row.appendChild(td);
@@ -144,11 +195,17 @@ function outputTable(jsonData)
         var tdimage = document.createElement('td'); // image
 
         var td1 = document.createElement('td'); //title
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
+        {
             var td2 = document.createElement('td'); // artist
+            $(td2).addClass('hidden-xs hidden-sm');
+        }
         
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
+        {
             var td3 = document.createElement('td');  //album
+            $(td3).addClass('hidden-xs hidden-sm');
+        }
         
         var tdtime = document.createElement('td');  // time
         var td4 = document.createElement('td');  // key
@@ -161,11 +218,12 @@ function outputTable(jsonData)
         //buttClick.classList.add('btn', 'btn-primary');
         //buttClick.classList.add('btn');
         //buttClick.classList.add('btn-primary');
-        $(buttClick).addClass('btn btn-primary');
+        $(buttClick).addClass('btn btn-primary btn-sm');
         
-        var buttonSize = (window.browserInfo.areWeMobile()) ? 'btn-sm' : 'btn-xs';
+        //var buttonSize = (window.browserInfo.areWeMobile()) ? 'btn-sm' : 'btn-xs';
+        //var buttonSize = 'btn-sm';
         //buttClick.classList.add(buttonSize);
-        $(buttClick).addClass(buttonSize);
+        //$(buttClick).addClass(buttonSize);
         
         buttClick.setAttribute("type", 'button');
         
@@ -187,9 +245,9 @@ function outputTable(jsonData)
 
         var text1 = document.createTextNode(songData.title);
         
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
             var text2 = document.createTextNode(songData.artist);
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
             var text3 = document.createTextNode(songData.album);
         var texttime = document.createTextNode(songData.playtime);
         var text4 = document.createTextNode(songData.initial_key);
@@ -203,9 +261,9 @@ function outputTable(jsonData)
         //tdimage.appendChild(imagebox);
         tdimage.appendChild(divimage);
         td1.innerHTML = songData.title;         // td1.appendChild(text1);
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
             td2.innerHTML = songData.artist;    // td2.appendChild(text2);
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
             td3.innerHTML = songData.album;     // td3.appendChild(text3);
         tdtime.appendChild(texttime);
         td4.appendChild(text4);
@@ -216,9 +274,9 @@ function outputTable(jsonData)
         
         tr.appendChild(tdimage);
         tr.appendChild(td1);
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
             tr.appendChild(td2);
-        if(!window.browserInfo.areWeMobile())
+        //if(!window.browserInfo.areWeMobile())
             tr.appendChild(td3);
         tr.appendChild(tdtime);
         tr.appendChild(td4);
@@ -257,12 +315,13 @@ function outputTable(jsonData)
     // remove whatever is in the spot
     $('.contentInfoContainer').empty();
     $('.contentInfoContainer').append(searchTable);
-    if(!window.browserInfo.areWeMobile())
+    /*
+    //if(!window.browserInfo.areWeMobile())
     {   
         //searchTable.parentNode.classList.add('table-responsive');
         $(searchTable.parentNode).addClass("table-responsive");
     }
-    
+    */
     //return searchAlbumArray;
     return searchArray;
 }

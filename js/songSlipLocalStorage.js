@@ -477,9 +477,10 @@ var playlist = (function(){
                 divRow.appendChild(indexDiv);
 
                 divRow.appendChild(textDiv);
-                if (!window.browserInfo.areWeMobile())
+                //if (!window.browserInfo.areWeMobile())
                 {
                     badge = document.createElement('span');
+                    $(badge).addClass('hidden-xs hidden-sm');
                     badge.style.cssFloat = "right";
 
                     // required for deleting item
