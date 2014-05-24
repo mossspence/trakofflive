@@ -1,6 +1,5 @@
 <?php
 namespace moss\musicapp;
-
 /**
  * Description of musica
  *
@@ -78,14 +77,14 @@ class mp3SongFileInfo
         return $string;
     }
     
-    public function checkImages()
+    public function checkForCoverArt()
     {
         $coverDir = $this->coverDir;
+        $cover = NULL;
 
-        // default image (just set it now and replace it if necessary)
-        $this->coverImage = DIRECTORY_SEPARATOR . $coverDir
-                        . DIRECTORY_SEPARATOR . 'default.png';
-        
+        /* check local files for art */
+        // to be deprecated when I move solely to the cloud (the cloud, the cloud)
+        // 
         // test for cover (3) and waveform (17)
         //test for covers
         $coverTypes = array(17, 3, 0, 20);
@@ -102,11 +101,18 @@ class mp3SongFileInfo
                     $this->waveform = $filename;
                 }else
                  {
-                    $this->coverImage = $filename;
-                    return; // emphasis on '3'
+                    $cover = $filename;
+                    break; // emphasis on '3'
                  }
             }
         }
+        
+        /* sets cover art */
+        
+        $this->coverImage = (empty($cover))
+                ? DIRECTORY_SEPARATOR . $coverDir
+                        . DIRECTORY_SEPARATOR . 'default.png'
+                : $cover;
     }
             
     protected function __toXML()
@@ -114,22 +120,14 @@ class mp3SongFileInfo
         
     }
     
-    
     // this function is like totally unecessary. I was thinking I was going to 
     // do more before outputting this information
+    // do more:
+    //  check userID (isAdmin? isSpecial?)
     public function __toArray()
     {
-        
-       $this->checkImages();
-       
-       $bpms = array('bpm' => $this->bpm, 
-                    'fBPM' => $this->fBPM, 
-                    'bpm_start' => $this->bpm_start);
-       
-       $keys = array('initial_key' => $this->initial_key, 
-                    'key_start' => $this->key_start, 
-                    'key_end' => $this->key_end, 
-                    'content_group_description' => $this->content_group_description);
+       // check for local image 
+       $this->checkForCoverArt();
 
        $tempArray = array('ID' => $this->id, 
                             'filename' => $this->filename,
@@ -153,10 +151,19 @@ class mp3SongFileInfo
                             'coverImage' => $this->coverImage,
                             'waveform' => $this->waveform);
 
-
        /*
         * this tempArray below includes an array for BPMs and KEYs
         * 
+       
+       $bpms = array('bpm' => $this->bpm, 
+                    'fBPM' => $this->fBPM, 
+                    'bpm_start' => $this->bpm_start);
+       
+       $keys = array('initial_key' => $this->initial_key, 
+                    'key_start' => $this->key_start, 
+                    'key_end' => $this->key_end, 
+                    'content_group_description' => $this->content_group_description);
+
        $tempArray = array('ID' => $this->id, 
                             'filename' => $this->filename,
                             'title' => $this->title,
@@ -175,8 +182,7 @@ class mp3SongFileInfo
         */
        
         return $tempArray;
-    }    
-    
+    }
 }
 
 ?>

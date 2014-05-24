@@ -78,10 +78,10 @@ function makeHeaderFooter()
         var headerArray = ['', 'Title', 'Time', 'Key', 'BPM', ''];
     }else
      {
-         */
-
-         var headerArray = ['', 'Title', 'Artist', 'Album', 'Time', 'Key', 'BPM', ''];
-     //}
+        var headerArray = ['', 'Title', 'Artist', 'Album', 'Time', 'Key', 'BPM', ''];
+     }
+    */
+    var headerArray = ['', 'Title', 'Artist', 'Album', 'Time', 'Key', 'BPM', ''];
     
     var row = document.createElement('tr');
     var td;
@@ -163,8 +163,9 @@ function outputTable(jsonData)
         //if ( jQuery.inArray( songData.album, albumImagesArray ) > -1 )
         {
             // if not in array
-            albumImagesArray.push(songData.album);
-            searchAlbumArray[songData.album] = songData.artist + ' ' + songData.title;
+            //albumImagesArray.push(songData.album);
+            //searchAlbumArray[songData.album] = songData.artist + ' ' + songData.title;
+            //searchAlbumArray[songData.album] = songData.artist + ' ' + songData.album;
             //console.log('Added search term for: ' + songData.album);
         }
 
@@ -172,13 +173,14 @@ function outputTable(jsonData)
         
         // make array to check iTunes cover images
         // if album is the same don't search again
+        
         if('/imglib/covers/default.png' === songData.coverImage)
         {
-            searchArray[songData.ID] = songData.artist + ' ' + songData.title;
+            // fake serialization for local cache search
+            searchArray[songData.ID] = songData.title + '==' + songData.artist + '==' + songData.album;
             //console.log('adding iTunes search for: ' + songData.ID);
         }
-        
-        
+        // */
         imagebox.setAttribute('alt', songData.title);
 
         imagebox.setAttribute('width', imagesize + 'px');
@@ -211,7 +213,6 @@ function outputTable(jsonData)
         var td4 = document.createElement('td');  // key
         var td5 = document.createElement('td');  //bpmcircle
         var td6 = document.createElement('td');  //add
-
 
         var buttClick = document.createElement('button');
         // IE doesn't like this multiple paramaters ...
@@ -470,7 +471,7 @@ function runSearch(q, page)
             {
                 $('.hideaftersearch').fadeOut(500);
                 var objData = outputTable(obj);
-                checkiTunesCovers(objData);                
+                checkArtCache(objData);                
                 calcNumSongs(obj.offset, obj.numRows, obj.numResults);
                 calcPageNav(obj.offset, obj.numResults, obj.limit, q);
             }else
@@ -542,22 +543,45 @@ function getbitRateColour(bitrateQuality)
     return bitrateQualityColour;
 }
 
-function checkiTunesCovers(dataArray)
+function checkArtCache(dataArray)
 {
     var coverImage;
     
-    console.log('searching iTunes');
+    console.log('searching cover art cache (which may include iTunes)');
     dataArray.forEach(function(val, key, array)
-    {    
-        //console.log('searching for: ' + key);
-         coverImage = checkForCover(val, key);
+    { 
+        /*
+        var find = '&#160;'; var find2 = '&amp;'; var find3 = '\\([A-Za-z_0-9]*\\)';
+                        val = val.replace(new RegExp(find,"g")," ");
+                        val.replace(new RegExp(find2,"g")," ");
+                        val.replace(new RegExp(find3,"g")," ");
+        */
+        //console.log('searching for : ' + key + ' with search term: ' + val);
+        coverImage = checkForCover(val, key);
     });
 }
-
 function checkForCover(searchTerm, key)
 {
+    $.ajax({
+        type: 'GET',
+        url: '../api/coverCache/' + searchTerm,
+        data : searchTerm,
+        success: function(data){
+            if(data.length === 0)
+            {
+                //alert ('No Image found for: ' + searchTerm);
+            }else
+            {   
+                document.getElementById(key).src = data;
+            }
+        }
+    });
+    return false;
+}
+function oldCheckForCover(searchTerm, key)
+{
     var retVal = false;
-    
+
     $.ajax({
         type: 'GET',
         url: 'https://itunes.apple.com/search',
@@ -607,7 +631,7 @@ $(document).ready(function()
         if((parseInt(window.jsonData.numResults, 10) > 0))
         {
             var objData = outputTable(window.jsonData);
-            checkiTunesCovers(objData);
+            checkArtCache(objData);
         }else
          {
             sorryBrah();

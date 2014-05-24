@@ -8,28 +8,54 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-$app['debug'] = true;
+$app['debug'] = false;
 
+$app->get('/api/coverCache/{string}', 
+            function (Silex\Application $app, $string)
+{
+    $artWorkCheck = new moss\musicapp\query\coverArtCache();
+
+    // fake unserialize
+    list($title,$artist,$albumTitle) = array_pad( explode( '==', $string ), 3, '' );
+
+    // searching for a record without parentheses provides better results
+    // but this is terribly slow (as it should be)
+    // and it is not perfect
+    //
+    $art = $artWorkCheck->getCache(
+            preg_replace("/\((.*?)\)/", '', html_entity_decode($title)), 
+            preg_replace("/\((.*?)\)/", '', html_entity_decode($artist)), 
+            preg_replace("/\((.*?)\)/", '', html_entity_decode($albumTitle)));
+        
+    return new \Symfony\Component\HttpFoundation\Response($art, 200);
+});
 $app->get('/itunes/{string}', function (Silex\Application $app, $string)
 {
-    //  (or maybe US as country)
     $terms = array(
-        'term' => $string,
-        'country' => 'CA',
-        'media' => 'music',
-//        'entity' => 'song,musicArtist,album',
-//        'attribute' => 'artistTerm, albumTerm, songTerm',     // don't know what's going on with attribute
-        'limit' => '15'
+     'term' => $string, 'country' => 'CA', 'media' => 'music',  'limit' => '15'
     );
     
     $searchString = "https://itunes.apple.com/search" . "?" . http_build_query($terms);
 
     $json =  file_get_contents($searchString);
-    //echo $searchString;
-    //print_r($json);
-    return new \Symfony\Component\HttpFoundation\Response($json, 201);
+    return new \Symfony\Component\HttpFoundation\Response($json, 200);
+    // */
 });
-
+$app->get('/sanitize/{string}', function (Silex\Application $app, $string)
+{
+    $result = '';
+    $sch = new moss\musicapp\songSearch($string);
+    $songs = $sch->search();
+    foreach ($songs as $song)
+    {
+        $result .= $song['title'] . " : sanitized: " 
+                . preg_replace("/\((.*?)\)/", '', html_entity_decode($song['title']))
+                .  '<br />' . PHP_EOL;
+    }
+    //$result = $string . ": sanitized: " . moss\standard\sanitizeValues::sanitizeString($string);
+    return new \Symfony\Component\HttpFoundation\Response($result, 200);
+    // */
+});
 $app->get('/testmail/', function (Silex\Application $app)
 {    
         $app->register(new Silex\Provider\SwiftmailerServiceProvider());
@@ -316,7 +342,7 @@ $app->get('/api/search/{string}/{page}/', function (Silex\Application $app, $str
             "songs"=> $songs));
     //json_encode($returnVal);
 
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
 
 // search title, artist, album
@@ -334,7 +360,7 @@ $app->get('/api/search/{string}/', function (Silex\Application $app, $string) {
             "songs"=> $songs));
     //json_encode($returnVal);
 
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
 
 // search key bpm with movement
@@ -353,7 +379,7 @@ $app->get('/api/tools/{key}/{bpm}/{kmove}/{bmove}/{page}/',
             "bpmMovement"=>$sch->__get('bpmMovement'), "keyMovement"=>$sch->__get('keyMovement'), 
             "songs"=> $songs));
 
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
 
 // search key bpm with movement
@@ -372,7 +398,7 @@ $app->get('/api/tools/{key}/{bpm}/{kmove}/{bmove}/',
             "bpmMovement"=>$sch->__get('bpmMovement'), "keyMovement"=>$sch->__get('keyMovement'), 
             "songs"=> $songs));
 
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
 
 // search key bpm with page
@@ -391,7 +417,7 @@ $app->get('/api/tools/{key}/{bpm}/{page}/',
             "songs"=> $songs));
     //json_encode($returnVal);
 
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
 
 // search key bpm
@@ -410,7 +436,7 @@ $app->get('/api/tools/{key}/{bpm}/',
             "songs"=> $songs));
     //json_encode($returnVal);
 
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
 
 //
