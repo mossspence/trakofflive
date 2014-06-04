@@ -97,7 +97,7 @@ class songSearch
                     break;
                 case 'HALF':
                     $bpmRange = $beatTools->getLocalBPMs(
-                                    $beatTools->getDoubleBPM($this->bpmString));
+                                    $beatTools->getHalfBPM($this->bpmString));
                     break;
                 default :
                     $bpmRange = $beatTools->getLocalBPMs($this->bpmString);
