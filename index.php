@@ -1,17 +1,27 @@
 <?php
 error_reporting(0);
+
 $loader = require __DIR__.'/vendor/autoload.php';
 $app = new Silex\Application();
+$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
+
 Twig_Autoloader::register();
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-$app['debug'] = false;
+$app['debug'] = true;
+if($app['debug'])
+{
+    error_reporting(E_ALL | E_STRICT); 
+    ini_set('display_errors', 1);
+    ini_set('log_errors', 1);
+}
+//$app->mount('/api/search/', new moss\musicapp\controllers\searchControllerProvider());
+//$app->mount('/api/tools/', new moss\musicapp\controllers\toolsControllerProvider());
 
-$app->get('/api/coverCache/{string}', 
-            function (Silex\Application $app, $string)
+$app->get('/api/coverCache/{string}', function (Silex\Application $app, $string)
 {
     $artWorkCheck = new moss\musicapp\query\coverArtCache();
 
@@ -21,97 +31,14 @@ $app->get('/api/coverCache/{string}',
     // searching for a record without parentheses provides better results
     // but this is terribly slow (as it should be)
     // and it is not perfect
-    //
+    //$regex = "/\((.*?)\)/";
+    $regex = "/\((.*?)\)|\/|\[(.*?)\]/";
     $art = $artWorkCheck->getCache(
-            preg_replace("/\((.*?)\)/", '', html_entity_decode($title)), 
-            preg_replace("/\((.*?)\)/", '', html_entity_decode($artist)), 
-            preg_replace("/\((.*?)\)/", '', html_entity_decode($albumTitle)));
+            preg_replace($regex, ' ', html_entity_decode($title)), 
+            preg_replace($regex, ' ', html_entity_decode($artist)), 
+            preg_replace($regex, ' ', html_entity_decode($albumTitle)));
         
     return new \Symfony\Component\HttpFoundation\Response($art, 200);
-});
-$app->get('/itunes/{string}', function (Silex\Application $app, $string)
-{
-    $terms = array(
-     'term' => $string, 'country' => 'CA', 'media' => 'music',  'limit' => '15'
-    );
-    
-    $searchString = "https://itunes.apple.com/search" . "?" . http_build_query($terms);
-
-    $json =  file_get_contents($searchString);
-    return new \Symfony\Component\HttpFoundation\Response($json, 200);
-    // */
-});
-$app->get('/sanitize/{string}', function (Silex\Application $app, $string)
-{
-    $result = '';
-    $sch = new moss\musicapp\songSearch($string);
-    $songs = $sch->search();
-    foreach ($songs as $song)
-    {
-        $result .= $song['title'] . " : sanitized: " 
-                . preg_replace("/\((.*?)\)/", '', html_entity_decode($song['title']))
-                .  '<br />' . PHP_EOL;
-    }
-    //$result = $string . ": sanitized: " . moss\standard\sanitizeValues::sanitizeString($string);
-    return new \Symfony\Component\HttpFoundation\Response($result, 200);
-    // */
-});
-$app->get('/testmail/', function (Silex\Application $app)
-{    
-        $app->register(new Silex\Provider\SwiftmailerServiceProvider());
-        
-        $smtp_server = ini_get('SMTP');
-        $smtp_port = ini_get('smtp_port');
-        
-        $transport = (!empty($smtp_server))
-                ? \Swift_SmtpTransport::newInstance($smtp_server, $smtp_port)
-                :NULL;
-        if(!empty($transport))
-        {
-            $myMailer = new moss\musicapp\exporter\sendMailToAdmin(
-                    \Swift_Mailer::newInstance($transport),
-                    \Swift_Message::newInstance(),
-                    array('oneilstuart@gmail.com' => 'Oneil Stuart'),  // recipient
-                    array('mark@oneilstuart.com' => 'Resident DJ Oneil'),  // sender
-                    'test title');
-
-            $message = $myMailer->showObject('message');
-            $mailer = $myMailer->showObject('mailer');
-
-            echo '<h1>SMTP Object</h1><pre>';
-            echo 'HOST: ' . $smtp_server . ' port: ' . $smtp_port;
-            echo '</pre>';
-            
-            /*
-            echo '<h1>Mailer Object</h1><pre>';
-            echo var_dump($mailer);
-            echo '</pre>'; 
-
-            echo '<h1>Message Object</h1><pre>';
-            echo var_dump($message);
-            echo '</pre>';
-
-            echo '<h1>Transport Object</h1><pre>';
-            echo var_dump($transport);
-            echo '</pre>';
-             * 
-             */
-
-            $myMailer->makeMessage('test list', 
-                    moss\standard\sanitizeValues::sanitizeString(ucfirst(substr('oneilstuart@gmail.com', 0, strpos('oneilstuart@gmail.com', '@')))));
-        }
-        //return true;
-        return ($myMailer->sendEmail());
-        
-});
-
-//homepage
-
-$app->get('/', function (Silex\Application $app)
-{
-    $twig = new Twig_Environment(new Twig_Loader_Filesystem(__DIR__.'/appsrc/templates'));
-    return $twig->render('home.html.twig');
-    //return true;
 });
 
 // save the exported m3u8 list to database
@@ -271,7 +198,7 @@ $app->get('/api/uploadprogress/', function (Silex\Application $app)
 {
     $app['session'] = new Session(); $app['session']->start();
     return new \Symfony\Component\HttpFoundation\Response(
-                    json_encode($_SESSION['upload_progress_upload']), 201);
+                    json_encode($_SESSION['upload_progress_upload']), 200);
 });
 
 // receive JSON song uploads
@@ -283,7 +210,7 @@ $app->post('/api/upload/songs/', function (Request $request) use ($app)
     if($request->files->get('myfile'))
     {
         //print_r ($request->files->get('myfile'));
-        $actualFile = $request->files->get('myfile');
+        //$actualFile = $request->files->get('myfile');
 
         $fileReader = new moss\musicapp\loader\batchImport();
 
@@ -327,9 +254,10 @@ $app->get('/myplaylist/{string}', function (Silex\Application $app, $string)
     // return new \Symfony\Component\HttpFoundation\Response(json_encode($playlists));
 });
 
+
 // search title, artist, album with page
 
-$app->get('/api/search/{string}/{page}/', function (Silex\Application $app, $string, $page) {
+$app->get('/api/search/{string}/{page}', function (Silex\Application $app, $string, $page) {
 
     $sch = new moss\musicapp\songSearch($string, '', '', $page);
     $songs = $sch->search();
@@ -343,11 +271,13 @@ $app->get('/api/search/{string}/{page}/', function (Silex\Application $app, $str
     //json_encode($returnVal);
 
     return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
-});
+})
+->value('page', 1)
+->assert('page', '\d+');
 
 // search title, artist, album
 
-$app->get('/api/search/{string}/', function (Silex\Application $app, $string) {
+$app->get('/api/search/{string}', function ($string) {
 
     $sch = new moss\musicapp\songSearch($string);
     $songs = $sch->search();
@@ -362,6 +292,7 @@ $app->get('/api/search/{string}/', function (Silex\Application $app, $string) {
 
     return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
+// */
 
 // search key bpm with movement
 
@@ -441,6 +372,7 @@ $app->get('/api/tools/{key}/{bpm}/',
 
 //
 // cheap way to various pages
+// however i heard somewhere that this is a bad practice
 
 $app->get('/{string}/', function (Silex\Application $app, $string)
 {
@@ -458,5 +390,14 @@ $app->get('/{string}/', function (Silex\Application $app, $string)
     return $twig->render($string .'.html.twig', array('folder' => $string, 'sessionVar' => ini_get('session.upload_progress.name')));
     //return true;
 });
+
+//homepage
+
+$app->get('/', function (Silex\Application $app)
+{
+    $twig = new Twig_Environment(new Twig_Loader_Filesystem(__DIR__.'/appsrc/templates'));
+    return $twig->render('home.html.twig');
+    //return true;
+})->bind('home');
 
 $app->run();
