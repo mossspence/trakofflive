@@ -4,6 +4,7 @@ error_reporting(0);
 $loader = require __DIR__.'/vendor/autoload.php';
 $app = new Silex\Application();
 $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
+$app->register(new Silex\Provider\SessionServiceProvider());
 
 Twig_Autoloader::register();
 
@@ -20,6 +21,9 @@ if($app['debug'])
 }
 //$app->mount('/api/search/', new moss\musicapp\controllers\searchControllerProvider());
 //$app->mount('/api/tools/', new moss\musicapp\controllers\toolsControllerProvider());
+
+// if you want to logout, access to 'auth/logout'
+// $app->mount('/auth', new moss\standard\BasicAuthControllerProvider());
 
 $app->get('/api/coverCache/{string}', function (Silex\Application $app, $string)
 {
@@ -292,7 +296,7 @@ $app->get('/api/search/{string}', function ($string) {
 
     return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
 });
-// */
+// 
 
 // search key bpm with movement
 
@@ -390,7 +394,7 @@ $app->get('/{string}/', function (Silex\Application $app, $string)
     return $twig->render($string .'.html.twig', array('folder' => $string, 'sessionVar' => ini_get('session.upload_progress.name')));
     //return true;
 });
-
+// */
 //homepage
 
 $app->get('/', function (Silex\Application $app)
