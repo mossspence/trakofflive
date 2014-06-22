@@ -26,6 +26,9 @@ class savePlaylist extends connect\SQLConnection
         
         try
         {
+            // wow, this is silly 
+            // this exec line will ALWAYS connect to the DB 
+            // to NOT do something.
             $this->db->exec("CREATE TABLE IF NOT EXISTS playlists (
                   id int(10) unsigned NOT NULL AUTO_INCREMENT,
                   username varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -57,6 +60,8 @@ class savePlaylist extends connect\SQLConnection
                     . " VALUES (:title, :comments, :username, :urlTitle, "
                     . ":hashTag, :ip_address, :songlist, :m3u8list)";
             
+            $implodedSongList = implode(', ', $songlist); // PHP Strict Standards
+            
             $stmt = $this->db->prepare($insert);
             $stmt->bindParam(':title', $title);
             $stmt->bindParam(':comments', $comments);
@@ -64,7 +69,7 @@ class savePlaylist extends connect\SQLConnection
             $stmt->bindParam(':ip_address', $ip_address);
             $stmt->bindParam(':urlTitle', $urlTitle);
             $stmt->bindParam(':hashTag', $hashTag);
-            $stmt->bindParam(':songlist', implode(', ', $songlist));
+            $stmt->bindParam(':songlist', $implodedSongList);
             $stmt->bindParam(':m3u8list', $m3u8list);
 
             $result = $stmt->execute();

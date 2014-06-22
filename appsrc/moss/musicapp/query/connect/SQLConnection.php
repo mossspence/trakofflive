@@ -117,7 +117,9 @@ class SQLConnection{
             $sql = "SELECT title, album, artist, filename, location, playtime from " . $this->DB__TABLEs . " WHERE ID = :id LIMIT 1";
             
             $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':id', intval($songID));
+            
+            // Strict Standards:  Only variables should be passed by reference            
+            $stmt->bindParam(':id', $songID); // intval($songID)
             $stmt->execute();
             $results = $stmt->fetch(\PDO::FETCH_ASSOC); // there SHOULD ONLY BE ONE row
         } catch (\PDOException $e) {

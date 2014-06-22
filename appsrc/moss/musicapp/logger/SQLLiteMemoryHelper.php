@@ -1,5 +1,6 @@
 <?php
 namespace moss\musicapp\logger;
+use moss\standard;
 /*
  * SQLite stuff for the ID3 database
  * 
@@ -32,7 +33,8 @@ class SQLLiteMemoryHelper {
     private $maxtime  = 30;
     private $cover    = 'imglib/covers'; 
     private $thumb    = 40;
-    
+    private $residentDJ    = 'mark@oneilstuart.com'; 
+    private $DJSMSaddress    = '4165262133@fido.ca';
     
     private $file_db = NULL;
     private $tables_in_use = array("songFiles", "completedSongFiles", "currentSongFile", "settings");
@@ -61,6 +63,8 @@ class SQLLiteMemoryHelper {
                                 baseDir TEXT NOT NULL, 
                                 coverDir TEXT NOT NULL, 
                                 thumbSize INTEGER NOT NULL, 
+                                residentDJ TEXT NOT NULL, 
+                                DJSMSaddress TEXT NOT NULL, 
                                 maxFileSize INTEGER NOT NULL,
                                 maxSeconds INTEGER NOT NULL,
                                 textBatchFile TEXT)");
@@ -83,20 +87,26 @@ class SQLLiteMemoryHelper {
         }
     }
     private function setupSettings($baseDir,
-            $cover = 'imglib/covers', $thumb = 40,
+            $cover = 'imglib/covers', $thumb = 40, 
+            $residentDJ = 'mark@oneilstuart.com', $DJSMSaddress = '4165262133@fido.ca',
             $accepted = 41943040, $maxtime = 30, $textBatchFile = NULL)
     {
         try {
             $insert = "INSERT INTO settings (baseDir, coverDir, thumbSize, "
-                    . "maxFileSize, maxSeconds, textBatchFile)"
-                    . " VALUES (:baseDir, :coverDir, :thumbSize, :maxFileSize, "
-                    . ":maxSeconds, :textBatchFile)";
+                    . " residentDJ, DJSMSaddress, maxFileSize, "
+                    . " maxSeconds, textBatchFile)"
+                    . " VALUES (:baseDir, :coverDir, :thumbSize, :residentDJ, "
+                    . ":DJSMSaddress, :maxFileSize, :maxSeconds, :textBatchFile)";
             $stmt = $this->file_db->prepare($insert);
             $stmt->bindParam(':baseDir', $baseDir);
             //$cover = coversFolderName;
             $stmt->bindParam(':coverDir', $cover);
             //$thumb = thumbSize;
             $stmt->bindParam(':thumbSize', $thumb);
+            //$residentDJ = residentDJ;
+            $stmt->bindParam(':residentDJ', standard\sanitizeValues::sanitizeEmail($residentDJ));
+            //$DJSMSaddress = DJSMSaddress;
+            $stmt->bindParam(':DJSMSaddress', standard\sanitizeValues::sanitizeEmail($DJSMSaddress));
             //$accepted = MAX_ACCEPTED_FILE_SIZE;
             $stmt->bindParam(':maxFileSize', $accepted);
             //$maxtime = MAX_EXECUTION_TIME_PER_SONG;
@@ -108,14 +118,16 @@ class SQLLiteMemoryHelper {
             echo $e->getMessage();
         }  
     }
-    public function newBaseDir($baseDir, $cover, $thumb, $accepted, $maxtime, $textBatchFile = NULL)
+    public function newBaseDir($baseDir, $cover, $thumb, $residentDJ, $DJSMSaddress, 
+                                $accepted, $maxtime, $textBatchFile = NULL)
     {
         $retVal = FALSE;
         if(isset($baseDir) && !empty($baseDir))
         {
             $stmt = $this->file_db->prepare("delete from settings");
             $stmt->execute();
-            $this->setupSettings($baseDir, $cover, $thumb, $accepted, $maxtime, $textBatchFile);
+            $this->setupSettings($baseDir, $cover, $thumb, $residentDJ, 
+                    $DJSMSaddress, $accepted, $maxtime, $textBatchFile);
             $retVal = TRUE;
         }
         return $retVal;
@@ -177,6 +189,10 @@ class SQLLiteMemoryHelper {
             echo $e->getMessage();
         }        
     }
+    // before anyone gets carried away ...
+    // this function was written before it was designed which explains why
+    // there are useless paramaters
+    // i will have to fix this one day but apparently not today
     public function putStatus($id, $previousID, $file, $folder, $startTime, $numFilesProcessed, $message)
     {
         $elapsedTime = time() - $startTime;
@@ -201,7 +217,6 @@ class SQLLiteMemoryHelper {
             echo $e->getMessage();
         }
     }
-
     private function deleteCompletedFromCurrent($ID)
     {
         try {

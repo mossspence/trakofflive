@@ -19,6 +19,8 @@ function SettingsViewModel() {
     self.baseDir = ko.observable();
     self.coverDir = ko.observable();
     self.thumbSize = ko.observable();
+    self.residentDJ = ko.observable();
+    self.DJSMSaddress = ko.observable();
     self.maxFileSize = ko.observable();
     self.maxSeconds = ko.observable();
     self.textBatchFile = ko.observable();
@@ -37,7 +39,6 @@ function SettingsViewModel() {
             success: function (plainJs, response) {
                 self.updateMessage('Settings have been updated.');
                 $('#updateMessage').fadeOut(5000);
-                //alert('Your data was posted, bitchassmotherfucker!!!! Now get out of my sight, asshole!!!');
                 //response = jQuery.parseJSON(response);
                 console.log('response: ' + response);
                 self.update();
@@ -55,6 +56,8 @@ function SettingsViewModel() {
                 self.baseDir(data.baseDir);
                 self.coverDir(data.coverDir);
                 self.thumbSize(data.thumbSize);
+                self.residentDJ(data.residentDJ);
+                self.DJSMSaddress(data.DJSMSaddress);
                 self.maxFileSize(data.maxFileSize);
                 self.maxSeconds(data.maxSeconds);
                 self.textBatchFile(data.textBatchFile);
@@ -66,12 +69,5 @@ $(document).ready(function() {
     var showSettings = new SettingsViewModel();
     ko.applyBindings(showSettings, document.getElementById('settingsInfo')); // ko.applyBindings(new SettingsViewModel());
     showSettings.update();          // SettingsViewModel().update();
-    /*
-        var data = getDataUsingAjax();
-        console.log(data);
-        SettingsViewModel.baseDir(data.baseDir);
-        SettingsViewModel.coverDir(data.coverDir);
-        SettingsViewModel.thumbSize(data.thumbSize);
-        SettingsViewModel.maxFileSize(data.maxFileSize);
-        SettingsViewModel.maxSeconds(data.maxSeconds);    */
+
 });

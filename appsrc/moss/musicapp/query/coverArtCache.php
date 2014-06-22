@@ -1,10 +1,10 @@
 <?php
 namespace moss\musicapp\query;
 use moss\musicapp\query\connect;
-use moss\musicapp\logger;
-use moss\musicapp;
+//use moss\musicapp\logger;
+//use moss\musicapp;
 /**
- * iTunesCache
+ * coverArtCache
  *
  * @author mosspence
  * 
@@ -32,7 +32,10 @@ class coverArtCache extends connect\SQLConnection{
         }
     }
     //get the imageUrl from the local database
-    private function getAlbumArt($artist, $albumTitle)
+     /**
+     * @assert ('nas', 'life is good') == 'http://a5.mzstatic.com/us/r30/Music/v4/05/9d/b1/059db16f-c11d-461e-7297-5268ca037267/UMG_cvrart_00602537109531_01_RGB72_1200x1200_12UMGIM31296.60x60-50.jpg'
+     */    
+    public function getAlbumArt($artist, $albumTitle)
     {
         $imgUrl = NULL;
             $sql = 'SELECT imgUrl 
@@ -55,7 +58,10 @@ class coverArtCache extends connect\SQLConnection{
             }
        return $imgUrl;
     }
-    private function getSongArt($artist, $title)
+     /**
+          * @assert ('nas', 'Cherry Wine ') == 'http://a5.mzstatic.com/us/r30/Music/v4/05/9d/b1/059db16f-c11d-461e-7297-5268ca037267/UMG_cvrart_00602537109531_01_RGB72_1200x1200_12UMGIM31296.60x60-50.jpg'
+     */    
+    public function getSongArt($artist, $title)
     {
         $imgUrl = NULL;
             $sql = 'SELECT imgUrl 
@@ -78,14 +84,31 @@ class coverArtCache extends connect\SQLConnection{
             }
        return $imgUrl;    
     }
+     /**
+     * @assert ('Cherry Wine ', 'nas', 'life is good') == 'http://a5.mzstatic.com/us/r30/Music/v4/05/9d/b1/059db16f-c11d-461e-7297-5268ca037267/UMG_cvrart_00602537109531_01_RGB72_1200x1200_12UMGIM31296.60x60-50.jpg'
+     */    
     public function getCache($title, $artist, $albumTitle)
     {
+        $art = $this->getAlbumArt($artist, $albumTitle);
+
+        if(empty($art))
+        {
+            $art = $this->getSongArt($artist, $title);
+            if(empty($art))
+            {
+                $art = $this->find($title, $artist, $albumTitle);
+            }
+        }
+        return $art;
+        // this only works in PHP 5.5+
+        /*
         return (empty($this->getAlbumArt($artist, $albumTitle)))
                 ? ( empty($this->getSongArt($artist, $title))
                         ? $this->find($title, $artist, $albumTitle)
                         : $this->getSongArt($artist, $title)
                   )
                 : $this->getAlbumArt($artist, $albumTitle);
+        */
     }
     //save the imgUrl to the database
     private function set($title, $artist, $albumTitle, $imgURL, $searchTerm)
@@ -119,6 +142,9 @@ class coverArtCache extends connect\SQLConnection{
     //  That means that if one does not check the cache first, 
      *  this method WILL insert duplicate data 
      * 
+     */
+     /**
+     * @assert ('Cherry Wine ', 'nas', 'life is good') != NULL
      */
     public function find($title, $artist, $albumTitle)
     {

@@ -1,0 +1,29 @@
+messaging classes/objects
+
+messageTypes/twigs
+
+- email
+- SMS
+- Tweet
+- Facebook/Google+/...
+
+messaging events
+
+- playlist saved
+- request song now
+- songs added/deleted
+
+Implementing these objects will require factory and observer patterns
+
+
+
+class factoryMessages() implements \SplObserver, \SplSubject
+
+setMedium
+
+makeMessage
+
+setSender
+
+setRecipient
+

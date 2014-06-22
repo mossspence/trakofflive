@@ -423,10 +423,10 @@ function performKeyBoardHide()
 
 function runSearch(q, page)
 {
-    var url = '../api/search/' + q + '/';
+    var url = '../api/search/' + q;
     if((parseInt(page, 10) > 0))
     {
-        url = url + page + '/';
+        url = url + '/' + page;
     }
     
     if(window.browserInfo.areWeMobile()) { performKeyBoardHide(); }
@@ -565,7 +565,6 @@ function checkForCover(searchTerm, key)
     $.ajax({
         type: 'GET',
         url: '../api/coverCache/' + searchTerm,
-        data : searchTerm,
         success: function(data){
             if(data.length === 0)
             {

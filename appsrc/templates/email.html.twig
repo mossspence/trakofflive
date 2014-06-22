@@ -1,16 +1,46 @@
-<html>
-      <body>
-      <basefont face="arial, verdana, courier"/>
-      <img src="http://oneilstuart.com/images/websitelogo.jpg" style="border: solid 1px #444; padding: 1px; margin-right:10px;" />
-      <h1>Oneil Stuart Studios: Trak Off Live</h1>
-      <h4>Hi there, {{ username }}</h4>
+{% block subject %}
+{{ appName }} Playlist - {{ playlist_title }} - Saved
+{% endblock %}
 
-      
-     <p>Your playlist is saved and will be mixed ASAP.</p>
-        <div style="font-size: 7px;"> {{ m3u8list }}</div>
-        <p>Thank you.</p>
-        <p style="font-size: 5px; margin-top:40px">
-        <a href="//oneilstuart.com/{{ appName }}">Oneil Stuart Studios</a> &copy; {{ date('Y') }};
-        </p>
+{% block body_html %}
+<html>
+    <body>
+        <basefont face="arial, verdana" />
+        <div style="font-size: 16px; float: left; height: 50px; width:100%; margin-bottom: 10px;">
+            <img src="http://oneilstuart.com/images/websitelogo.jpg" style="float: left; border: solid 1px #444; padding: 1px; margin-right:10px;" />
+            <h5>Oneil Stuart Studios</h5>
+        </div>
+        <hr style="border: solid 1px #444; padding: 1px; width: 80%; clear: both;">
+        <div>
+            
+            <h4>Hi there, {{ username }}</h4>
+
+            <p>Your playlist is saved and will be mixed ASAP.</p>
+            <div>
+                You can view your playlist at <a href="{{ playlist_url }}">{{ playlist_title }}</a>.
+            </div>
+            <p>Thank you.</p>
+            <p style="font-size: 9px; margin-top:40px">
+                <a href="//oneilstuart.com/{{ appName }}">Oneil Stuart Studios</a> &copy; {{ "now"|date('Y') }}
+            </p>
         
-</body></html>      
+        </div>
+    </body>        
+</html>
+{% endblock %}
+
+{% block body_txt %}
+
+Hi there, {{ username }}
+
+Your playlist:
+'{{ playlist_title }}' 
+is saved and will be mixed ASAP.
+
+You can view your playlist at {{ playlist_url }}.
+        
+Thank you.
+Oneil Stuart Studios copyright {{ "now"|date('Y') }}
+http://oneilstuart.com/{{ appName }}
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{% block subject %}
+{{ appName }} {% if hashtag is defined %}- {{ hashtag }} {% endif %} Notification
+{% endblock %}
+
+{% block request_notification %}
+{{ username }} requests this song: 
+{{ song_requested_info }}
+{% endblock %}
+
+{% block playlist_notification %}
+{{ username }} saved Playlist {{ playlist_title }} at {{ playlist_url }}
+{% endblock %}
+
+{% block hashtag_notification %}
+{{ hashtag }} request: 
+{{ song_requested_info }}
+{% endblock %}
+
+{% block unknown_notification %}
+{{ song_requested_info }}
+{% endblock %}
+
+{% block body_text %}
+{% if hashtag is defined %}Party HashTag: {{ hashtag }}  {% endif %}
+{% if username is defined %}username: {{ username }}  {% endif %}
+{% if playlist_title is defined %}Title: {{ playlist_title }} saved at {{ playlist_url }}  {% endif %}
+{{ song_requested_info }}
+Requested: {{ "now"|date('d m Y') }}
+{% endblock %}

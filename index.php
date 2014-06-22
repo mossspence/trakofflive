@@ -6,13 +6,17 @@ $app = new Silex\Application();
 $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new Silex\Provider\SessionServiceProvider());
 
+$app['appName'] = 'trakofflive';
+$app['app version'] = 'beta 0.5.2';
+
 Twig_Autoloader::register();
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-$app['debug'] = true;
+$app['debug'] = $_SERVER['REMOTE_ADDR'] == '127.0.0.1';
+
 if($app['debug'])
 {
     error_reporting(E_ALL | E_STRICT); 
@@ -49,7 +53,6 @@ $app->get('/api/coverCache/{string}', function (Silex\Application $app, $string)
 
 $app->post('/api/savelist/', function (Request $request) use ($app)
 {
-    $numSent = 0;
     // make the M3U8 list for the DJ who signs into a Windows computer
     // $signedIN = $userIsWindowsUser = TRUE;
     $makePlayLister = new moss\musicapp\exporter\playLister(
@@ -63,39 +66,21 @@ $app->post('/api/savelist/', function (Request $request) use ($app)
                             $request->get('eventHashtag'),
                             $request->get('playlistComments'));
     
-    $result = $saveMyList->saveMe($DJ_m3u8list, $makePlayLister->getPlayList());
+    $sendMessage = new moss\musicapp\exporter\sendMessageTo(__DIR__.'/appsrc/templates');
+    $saveMyList->attach($sendMessage);
+    //$request->getHost();
     
-    if($result)
+    if($saveMyList->saveMe($DJ_m3u8list, $makePlayLister->getPlayList()))
     {
-        $subjectTitle = $saveMyList->getfield('title'); // sanitized title
-
-        $smtp_server = ini_get('SMTP');
-        $smtp_port = ini_get('smtp_port');
-
-        $app->register(new Silex\Provider\SwiftmailerServiceProvider());        
-        $transport = (!empty($smtp_server))
-                ? \Swift_SmtpTransport::newInstance($smtp_server, $smtp_port)
-                :NULL;
-        if(!empty($transport))
-        {
-            $myMailer = new moss\musicapp\exporter\sendMailToAdmin(
-                    Swift_Mailer::newInstance($transport),
-                    Swift_Message::newInstance(),
-                    array($saveMyList->getfield('email')),          // recipient
-                    array('mark@oneilstuart.com' => 'Resident DJ Oneil'),  // sender
-                    $subjectTitle);
-
-            $myMailer->makeMessage( $saveMyList->getfield('urlTitle'),
-                    ucfirst(substr($saveMyList->getfield('email'), 0, 
-                            strpos($saveMyList->getfield('email'), '@'))));
-            $numSent = $myMailer->sendEmail();
-        }
-        $result = $saveMyList->getfield('url');
+        // sends an email
+        $saveMyList->notify(); $result = '1'; // flash message?
     }else
     {
-        echo 'Could not be saved.';
+        $result = '0'; // flash message?
     }
-    return new \Symfony\Component\HttpFoundation\Response($result, 200);
+   
+    return new \Symfony\Component\HttpFoundation\Response(
+            json_encode(array('result'=>$result)), 200);
 });
 
 // post standard loading settings
@@ -112,23 +97,24 @@ $app->post('/api/loadersettings/', function (Request $request)
      {
         $retVal = $settings->newBaseDir($request->get('baseDir'),
             $request->get('coverDir'), $request->get('thumbSize'),
+            $request->get('residentDJ'), $request->get('DJSMSaddress'),
             $request->get('maxFileSize'), $request->get('maxSeconds'), 
-                $request->get('textBatchFile'));
-        //print_r(json_encode(array($_POST['baseDir'], 'it maybe worked')));
+            $request->get('textBatchFile'));
+        //print_r(json_encode(array($request->get('baseDir'), 'it maybe worked')));
      }
-     return $retVal;
+     return new \Symfony\Component\HttpFoundation\Response(
+            json_encode(array($request->get('baseDir'), 'it maybe worked')), 200);
 });
 
 // get logs
 
 $app->get('/api/logs/', function (Silex\Application $app)
 {
-     $settings = new moss\musicapp\logger\SQLLiteMemoryHelper();
-     
+    $settings = new moss\musicapp\logger\SQLLiteMemoryHelper(); 
     $myLog = $settings->getErrorLog();
-    
-    $returnVal = json_encode($myLog);
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 201);
+
+    return new \Symfony\Component\HttpFoundation\Response(
+            json_encode($myLog), 200);
 });
 
 // get standard LOAD settings
@@ -137,10 +123,11 @@ $app->get('/api/loadersettings/', function (Silex\Application $app)
 {
      $settings = new moss\musicapp\logger\SQLLiteMemoryHelper();
      
-        //sleep(1); // anymore than this and I'll have a riot on my hands
-        $mySettings = $settings->fetchSettings();
-        $returnVal = json_encode($mySettings);
-    return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
+    //sleep(1); // anymore than this and I'll have a riot on my hands
+    $mySettings = $settings->fetchSettings();
+
+    return new \Symfony\Component\HttpFoundation\Response(
+            json_encode($mySettings), 200);
 });
 
 // show the m3u8 list to the user

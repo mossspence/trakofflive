@@ -12,7 +12,7 @@ use moss\standard;
  * @author mosspence
  * get senders and recipients and then send a message
  */
-class sendMailToAdmin
+class sendMailToAdmin implements \SplObserver
 {
     private $senders;
     private $recipients;
@@ -39,8 +39,21 @@ class sendMailToAdmin
         $this->message = $message; // Swift_Message::newInstance();
         $this->mailer = $mailer;  // Swift_Mailer::newInstance($transport);
     }
-    
-    function setAndCheckEmails($input)
+    public function update(\SplSubject $playList)
+    {
+        if($playList->getfield('title'))
+        {
+            // that means the list was saved and I can email someone
+        }
+        
+        //
+        if($playList->getfield('hashTag'))
+        {
+            // that means a song or playlist should be sent immediately
+            // so I should email to SMS
+        }
+    }
+    public function setAndCheckEmails($input)
     {
         $output = NULL;
         if(is_array($input) && !empty($input))
@@ -102,7 +115,7 @@ class sendMailToAdmin
             <img src="http://oneilstuart.com/images/websitelogo.jpg" 
             style="float: left; border: solid 1px #444; padding: 1px; margin-right:10px;" />
             Oneil Stuart Studios</div>
-            <hr border: solid 1px #444; padding: 1px; width: 80% clear: both;>
+            <hr style="border: solid 1px #444; padding: 1px; width: 80%; clear: both;">
             <div>' . $htmlBody . '</div></html>';
         
         $this->htmlBody = $htmlBody;

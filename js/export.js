@@ -95,25 +95,48 @@ function ExportViewModel() {
             type: 'POST',
             data: data,
             success: function (response) {
-                self.updateMessage('Playlist has been posted to your favourite DJ. Expect your mix real soon.');
-                self.clearExportData();
-                $('#playlistDiv').hide();
-                $('#playlistSongs').empty();
+                try{
+                    var obj = jQuery.parseJSON(response);
+                } catch (error){
+                    console.log('Got bad data from the server: ' + error);
+                }
+                if(typeof obj !== 'object')
+                {
+                    alert('Sorry, got bad data from the server ' + response);
+                    if(obj === false)
+                    {
+                        alert('Sorry, False returned. That\'s bad, yo!');
+                    } 
+                    var obj;
+                    obj.result = null;
+                }
                 
-                // I should also delete the current playlist from local storage
-                window.playlist.clearSongs();
-                // maybe even disable the submit button
-                window.playlist.countTime();
-                window.playlist.countSongs();                
-                
-                self.playlistTitle(null);
-                self.playlistComments(null);
-                self.playlistEmail(null);
-                self.playlistHashTag(null);
-                //self.songList(null);// an example on the knockout website showed 'undefined' but I'm pretty sure null is the way to go
+                if((parseInt(obj.result, 10) > 0))
+                {
+                    self.updateMessage('Playlist has been posted to your favourite DJ. Expect your mix real soon.');
+                    self.clearExportData();
+                    $('#playlistDiv').hide();
+                    $('#playlistSongs').empty();
 
-                $('#updateMessage').show();
-                $('#updateMessage').fadeOut(5000);
+                    // I should also delete the current playlist from local storage
+                    window.playlist.clearSongs();
+                    // maybe even disable the submit button
+                    window.playlist.countTime();
+                    window.playlist.countSongs();                
+
+                    self.playlistTitle(null);
+                    self.playlistComments(null);
+                    self.playlistEmail(null);
+                    self.playlistHashTag(null);
+                    //self.songList(null);// an example on the knockout website showed 'undefined' but I'm pretty sure null is the way to go
+
+                    $('#updateMessage').show();
+                    $('#updateMessage').fadeOut(5000);
+                }else
+                 {
+                     alert('Looks like the database could not not catch it. ' + response);
+                 }
+            
             }
         });        
     };

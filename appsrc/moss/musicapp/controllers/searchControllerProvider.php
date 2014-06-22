@@ -9,6 +9,7 @@ namespace moss\musicapp\controllers;
  * search controller
  */
 use Silex\Application;
+use Silex\ControllerCollection;
 use Silex\ControllerProviderInterface;
  
 class searchControllerProvider implements ControllerProviderInterface
@@ -16,9 +17,12 @@ class searchControllerProvider implements ControllerProviderInterface
     public function connect(Application $app)
     {
         // creates a new controller based on the default route
-        $controllers = $app['controllers_factory'];
-        
-        $controllers->$app->get('/{string}', function ($string){
+        //$controllers = $app['controllers_factory'];
+        $controllers = new ControllerCollection($app['route_factory']);
+        $controllers
+                ->$app->get(  // this is where the problem occurs /* Catchable fatal error: Object of class Silex\Application could not be converted to string in /home/www/silex-songs/appsrc/moss/musicapp/controllers/searchControllerProvider.php on line 25  */
+                '/{string}', 
+                function ($string){
            
             $sch = new moss\musicapp\songSearch($string);
             $songs = $sch->search();
@@ -33,7 +37,7 @@ class searchControllerProvider implements ControllerProviderInterface
 
             return new \Symfony\Component\HttpFoundation\Response($returnVal, 200);
         });
-
+/*
         $controllers->$app->get('/{string}/{page}', function (Silex\Application $app, $string) {
 
             $sch = new moss\musicapp\songSearch($string, '', '', $page);
