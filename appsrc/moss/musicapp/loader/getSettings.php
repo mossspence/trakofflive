@@ -11,7 +11,7 @@ namespace moss\musicapp\loader;
 /**
  * Description of getSettings
  *
- * @author oneilstuart
+ * @author mosspence
  */
 class getSettings {
     public function __construct() {
