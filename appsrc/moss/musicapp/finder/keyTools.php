@@ -4,7 +4,7 @@ namespace moss\musicapp\finder;
 /**
  * Description of keyTools
  *
- * @author oneilstuart
+ * @author mosspence
  */
 class keyTools
 {
